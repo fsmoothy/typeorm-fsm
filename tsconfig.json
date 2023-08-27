@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "types": [
+      "jest",
+      "node"
+    ],
+    "module": "commonjs",
+    "target": "ES2021",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "strict": true,
+    "importHelpers": true,
+    "incremental": true,
+  },
+  "include": [
+    "src/**/*",
+    "*.config.js",
+    "jest.config.js"
+  ]
+}
