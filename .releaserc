@@ -4,6 +4,30 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     "@semantic-release/npm",
-    "@semantic-release/git"
+    ["@semantic-release/git", {
+      "assets": [
+        "dist/**/*.{js,ts,map}",
+        "package.json",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    }],
+    ["@semantic-release/github", {
+      "assets": [
+        {
+          "path": "dist/*.js",
+          "label": "Distribution"
+        },
+        {
+          "path": "dist/*.map",
+          "label": "Source map"
+        },
+        {
+          "path": "dist/*.d.ts",
+          "label": "Type definitions"
+        }
+      ]
+    }]
   ]
 }
