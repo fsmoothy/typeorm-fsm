@@ -21,7 +21,7 @@
 
 ## Usage
 
-I'll model a simple order state machine to demonstrate the library's features. The diagram below shows the state machine's states and transitions.
+Let's create a basic order state machine to showcase the features of the library. The diagram below illustrates the states and transitions of the state machine.
 
 ```mermaid
 stateDiagram-v2
@@ -55,7 +55,7 @@ enum OrderItemEvent {
 
 ### Entity
 
-The entity class must extends `StateMachineEntity` with defined initial state and transitions and have `id` property.
+The entity class must extend `StateMachineEntity` with defined initial state and transitions and have `id` property.
 
 ```typescript
 import { StateMachineEntity, t } from 'typeorm-fsm';
@@ -103,31 +103,31 @@ class Order extends StateMachineEntity({
 
 ### StateMachineEntity
 
-Let's take a look at the `StateMachineEntity` function. It takes an object with the following properties:
+Let's take a look at the `StateMachineEntity` function. It accepts an object with the following properties:
 
-- `id` - unique identifier of the state machine (uses for debugging purposes)
-- `initial` - initial state of the state machine
-- `persistContext` - if `true`, the state machine context will be saved to the database. Default: `false`
-- `saveAfterTransition` - if `true`, the state machine will be saved to the database after each transition. Default: `true`
+- `id` - a unique identifier for the state machine (used for debugging purposes)
+- `initial` - the initial state of the state machine
+- `persistContext` - if set to `true`, the state machine context will be saved to the database. Default value is `false`
+- `saveAfterTransition` - if `true`, the state machine will be saved to the database after each transition. Default value is `true`
 - `ctx` - initial context of the state machine
-- `transitions` - array of transitions
+- `transitions` - an array of transitions
 
 ### Transitions
 
-The common way to define transition is to use `t` function. It takes three arguments:
+The most common way to define a transition is by using the ﻿t function, which requires three arguments (guard is optional).
 
 ```typescript
-t(from: State, event: Event, to: State)
+t(from: State, event: Event, to: State, guard?: (context: Context) => boolean)
 ```
 
-But sometimes we need to define more complex transitions. In this case, we can use an object with the following properties:
+However, we may need to define more complex transitions. In such cases, we can use an object with the following attributes:
 
-- `from` - state from which the transition is allowed
-- `event` - event that triggers the transition
-- `to` - state to which the transition leads
-- `guard` - function that checks if the transition is allowed
-- `onEnter` - function that is called when the transition is triggered
-- `onExit` - function that is called when the transition is completed
+- `from` - represents the state from which the transition is permitted
+- `event` - denotes the event that triggers the transition
+- `to` - indicates the state to which the transition leads
+- `guard` - a function that verifies if the transition is permissible
+- `onEnter` - a function that executes when the transition is triggered
+- `onExit` - a function that executes when the transition is completed
 
 ### Make transition
 
@@ -145,7 +145,7 @@ We're passing the `place` argument to the `transfer` method. It will be passed t
 
 ### Current state
 
-Ypu can get the current state of the state machine using the `current` property.
+You can get the current state of the state machine using the `current` property.
 
 ```typescript
 const order = new Order();
@@ -161,7 +161,7 @@ console.log(order.itemsStatus.isDraft()); // true
 
 ### Subscribers
 
-You can subscribe to state changes using the `on` method. And unsubscribe using the `off` method.
+You can subscribe to transition using the `on` method. And unsubscribe using the `off` method.
 
 ```typescript
 const order = new Order();
@@ -175,7 +175,7 @@ order.itemsStatus.off(subscriber);
 
 ### Lifecycle
 
-The state machine has the following lifecycle methods ordered by execution order:
+The state machine has the following lifecycle methods in the order of execution:
 
 ```
 - guard
