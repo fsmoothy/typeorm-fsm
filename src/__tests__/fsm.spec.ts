@@ -194,7 +194,7 @@ describe('StateMachine', () => {
         ],
       });
 
-      expect(await stateMachine.can(Event.fetch)).toBe(true);
+      expect(await stateMachine.canFetch()).toBe(true);
     });
 
     it('should respect guards', async () => {
@@ -206,7 +206,7 @@ describe('StateMachine', () => {
         ],
       });
 
-      expect(await stateMachine.can(Event.fetch)).toBe(false);
+      expect(await stateMachine.canFetch()).toBe(false);
     });
   });
 
@@ -237,7 +237,7 @@ describe('StateMachine', () => {
     });
   });
 
-  describe('isFinite', () => {
+  describe('isFinal', () => {
     it('should return true if current state is passed', async () => {
       const stateMachine = new StateMachine({
         initial: State.idle,

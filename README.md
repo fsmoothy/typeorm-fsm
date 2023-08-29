@@ -13,8 +13,11 @@
   - [Transitions](#transitions)
   - [Make transition](#make-transition)
   - [Current state](#current-state)
+  - [Transition availability](#transition-availability)
   - [Subscribers](#subscribers)
   - [Lifecycle](#lifecycle)
+  - [Bound lifecycle methods](#bound-lifecycle-methods)
+  - [Error handling](#error-handling)
 - [Installation](#installation)
 - [Latest Changes](#latest-changes)
 - [Thanks](#thanks)
@@ -159,6 +162,30 @@ const order = new Order();
 console.log(order.itemsStatus.isDraft()); // true
 ```
 
+Also `is(state: State)` method is available.
+
+### Transition availability
+
+You can check if the transition is available using the `can` + `event name` method.
+
+```typescript
+const order = new Order();
+
+console.log(order.itemsStatus.canCreate()); // true
+await order.itemsStatus.create();
+console.log(order.itemsStatus.canCreate()); // false
+await order.itemsStatus.assemble();
+```
+
+Arguments are passed to the `guard` function.
+
+``` typescript
+await order.itemsStatus.transfer('Another warehouse');
+console.log(order.itemsStatus.canTransfer('Another warehouse')); // false
+```
+
+Also `can(event: Event, ...args)` method is available.
+
 ### Subscribers
 
 You can subscribe to transition using the `on` method. And unsubscribe using the `off` method.
@@ -203,6 +230,22 @@ order.itemStatus.on(OrderItemEvent.create, function (this: Order) {
 });
 
 await order.itemsStatus.create();
+```
+
+### Error handling
+
+Library throws `StateMachineError` if transition is not available. It can be caught using `try/catch` and checked using `isStateMachineError` function.
+
+```typescript
+import { isStateMachineError } from 'typeorm-fsm';
+
+try {
+  await order.itemsStatus.create();
+} catch (error) {
+  if (isStateMachineError(error)) {
+    console.log(error.message);
+  }
+}
 ```
 
 ## Installation

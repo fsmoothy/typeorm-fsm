@@ -15,7 +15,7 @@ export interface IStateMachineParameters<
   id?: string;
 }
 
-type StateMachineEvents<Event extends string | number | symbol> = {
+type StateMachineEvents<Event extends AllowedNames> = {
   /**
    * @param arguments_ - Arguments to pass to lifecycle hooks.
    */
@@ -23,6 +23,13 @@ type StateMachineEvents<Event extends string | number | symbol> = {
 };
 
 type CapitalizeString<S> = S extends string ? Capitalize<S> : S;
+
+type StateMachineTransitionCheckers<Event extends AllowedNames> = {
+  /**
+   * @param arguments_ - Arguments to pass to guard.
+   */
+  [key in `can${CapitalizeString<Event>}`]: () => boolean;
+};
 
 type StateMachineCheckers<State extends AllowedNames> = {
   [key in `is${CapitalizeString<State>}`]: () => boolean;
@@ -34,7 +41,8 @@ export type IStateMachine<
   Context extends object,
 > = _StateMachine<State, Event, Context> &
   StateMachineEvents<Event> &
-  StateMachineCheckers<State>;
+  StateMachineCheckers<State> &
+  StateMachineTransitionCheckers<Event>;
 
 export type StateMachineConstructor = {
   new <
@@ -342,15 +350,20 @@ export class _StateMachine<
     transitions: Array<ITransition<State, Event, Context>>,
   ) {
     for (const transition of transitions) {
-      const { from, to } = transition;
+      const { from, to, event } = transition;
       const capitalizedFrom = capitalize(from);
       const capitalizedTo = capitalize(to);
+      const capitalizedEvent = capitalize(event);
 
       // @ts-expect-error We need to assign the method to the instance.
       this[`is${capitalizedFrom}`] = () => this.is(from);
 
       // @ts-expect-error We need to assign the method to the instance.
       this[`is${capitalizedTo}`] = () => this.is(to);
+
+      // @ts-expect-error We need to assign the method to the instance.
+      this[`can${capitalizedEvent}`] = (...arguments_) =>
+        this.can(event, ...arguments_);
     }
   }
 
