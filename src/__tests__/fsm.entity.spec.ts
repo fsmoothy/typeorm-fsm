@@ -62,8 +62,11 @@ class Order extends StateMachineEntity({
         from: OrderItemState.warehouse,
         event: OrderItemEvent.transfer,
         to: OrderItemState.warehouse,
-        guard(this: Order, context: { place: string }) {
-          return context.place !== 'My warehouse';
+        guard(context: { place: string }, place: string) {
+          return context.place !== place;
+        },
+        onExit(context: { place: string }, place: string) {
+          context.place = place;
         },
       },
       t(OrderItemState.warehouse, OrderItemEvent.ship, OrderItemState.shipping),
@@ -153,6 +156,10 @@ describe('StateMachineEntity', () => {
     await order.itemsStatus.create();
     await order.itemsStatus.assemble();
 
-    await expect(order.itemsStatus.transfer()).rejects.toThrowError();
+    await order.itemsStatus.transfer('John warehouse');
+
+    await expect(
+      order.itemsStatus.transfer('John warehouse'),
+    ).rejects.toThrowError();
   });
 });

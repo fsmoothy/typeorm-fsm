@@ -4,13 +4,10 @@ import { IStateMachineParameters, StateMachine, IStateMachine } from './fsm';
 
 type AllowedNames = string | number;
 
-type Callback<
-  Context extends object,
-  T extends Array<unknown> = Array<unknown>,
-> =
+type Callback<Context extends object, T extends Array<any> = Array<any>> =
   | ((context: Context, ...arguments_: T) => Promise<void>)
   | ((context: Context, ...arguments_: T) => void);
-type Guard<Context extends object, T extends Array<unknown> = Array<unknown>> =
+type Guard<Context extends object, T extends Array<any> = Array<any>> =
   | ((context: Context, ...arguments_: T) => boolean)
   | ((context: Context, ...arguments_: T) => Promise<boolean>);
 

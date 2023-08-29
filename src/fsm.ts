@@ -192,7 +192,10 @@ class _StateMachine<
   /**
    * Checks if the event can be triggered in the current state.
    */
-  public async can(event: Event) {
+  public async can<Arguments extends Array<unknown> = Array<unknown>>(
+    event: Event,
+    ...arguments_: Arguments
+  ) {
     const allowedEvents = this._allowedEvents.get(this._current);
     if (!allowedEvents?.has(event)) {
       return false;
@@ -205,7 +208,7 @@ class _StateMachine<
 
     const { guard } = transitions.get(this._current) ?? {};
 
-    return await (guard?.(this._ctx) ?? true);
+    return await (guard?.(this._ctx, ...arguments_) ?? true);
   }
 
   /**
@@ -246,7 +249,7 @@ class _StateMachine<
     ...arguments_: Arguments
   ) {
     return await new Promise<this>(async (resolve, reject) => {
-      if (!(await this.can(event))) {
+      if (!(await this.can(event, ...arguments_))) {
         reject(
           new StateMachineError(
             `Event ${event} is not allowed in state ${this._current} of ${this._id}`,
