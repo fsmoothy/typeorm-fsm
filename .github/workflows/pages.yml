@@ -1,7 +1,13 @@
 name: Deploy docs
 
 on:
-  - release
+  release:
+    branches:
+      - master
+  workflow_dispatch:
+    branches:
+      - master
+
 
 permissions:
   contents: read
