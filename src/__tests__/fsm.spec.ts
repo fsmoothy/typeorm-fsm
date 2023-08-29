@@ -1,5 +1,7 @@
 import { StateMachine, t } from '../fsm';
 
+import { isStateMachineError } from './../fsm.error';
+
 enum State {
   idle = 'idle',
   pending = 'pending',
@@ -159,6 +161,26 @@ describe('StateMachine', () => {
       await expect(stateMachine.transition(Event.fetch)).rejects.toThrow(
         'Event fetch is not allowed in state idle of guard fsm',
       );
+    });
+
+    it('should throw if transition is not defined', async () => {
+      const stateMachine = new StateMachine({
+        id: 'fetch fsm',
+        initial: State.idle,
+        transitions: [
+          t(State.idle, Event.fetch, State.pending),
+          t(State.pending, Event.resolve, State.idle),
+        ],
+      });
+
+      try {
+        // @ts-expect-error - we don't have this event
+        await stateMachine.transition('unknown event');
+      } catch (error) {
+        expect(isStateMachineError(error)).toBe(true);
+      }
+
+      expect.assertions(1);
     });
   });
 

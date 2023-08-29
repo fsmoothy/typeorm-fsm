@@ -1,15 +1,18 @@
-import { BaseEntity, Column, getMetadataArgsStorage, ObjectId } from 'typeorm';
+import {
+  BaseEntity,
+  Callback,
+  Column,
+  getMetadataArgsStorage,
+  ObjectId,
+} from 'typeorm';
 
-import { IStateMachineParameters, StateMachine, IStateMachine } from './fsm';
-
-type AllowedNames = string | number;
-
-type Callback<Context extends object, T extends Array<any> = Array<any>> =
-  | ((context: Context, ...arguments_: T) => Promise<void>)
-  | ((context: Context, ...arguments_: T) => void);
-type Guard<Context extends object, T extends Array<any> = Array<any>> =
-  | ((context: Context, ...arguments_: T) => boolean)
-  | ((context: Context, ...arguments_: T) => Promise<boolean>);
+import {
+  IStateMachineParameters,
+  StateMachine,
+  IStateMachine,
+  _StateMachine,
+} from './fsm';
+import { AllowedNames, ITransition } from './types';
 
 export interface IStateMachineEntityColumnParameters<
   State extends AllowedNames,
@@ -19,14 +22,7 @@ export interface IStateMachineEntityColumnParameters<
     State,
     Event,
     Context,
-    Array<{
-      from: State;
-      event: Event;
-      to: State;
-      onEnter?: Callback<any>;
-      onExit?: Callback<any>;
-      guard?: Guard<any>;
-    }>
+    Array<ITransition<State, Event, any>>
   > {
   persistContext?: boolean;
   /**
@@ -137,6 +133,21 @@ function initializeStateMachine<
     initial: entity[column] as State,
     ctx: context,
   });
+
+  // @ts-expect-error - bind entity to transition
+  entity[column].on = function (
+    this: _StateMachine<AllowedNames, AllowedNames, object>,
+    event: AllowedNames,
+    callback: Callback<object>,
+  ) {
+    if (!this._subscribers.has(event)) {
+      this._subscribers.set(event, new Map());
+    }
+
+    const callbacks = this._subscribers.get(event);
+    // @ts-expect-error - bind entity to transition
+    callbacks?.set(callback, callback.bind(entity));
+  };
 }
 
 export const StateMachineEntity = function <

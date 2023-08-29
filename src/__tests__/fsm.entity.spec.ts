@@ -32,6 +32,10 @@ enum OrderItemEvent {
   deliver = 'deliver',
 }
 
+interface IOrderItemContext {
+  place: string;
+}
+
 @Entity('order')
 class Order extends StateMachineEntity({
   status: {
@@ -139,6 +143,28 @@ describe('StateMachineEntity', () => {
     });
 
     expect(orderFromDatabase.status.current).toBe(OrderState.pending);
+  });
+
+  it('should be able to pass correct contexts (this and ctx) to subscribers', async () => {
+    const order = new Order();
+    await order.save();
+
+    let handlerContext!: Order;
+    const handler = jest.fn().mockImplementation(function (
+      this: Order,
+      _context: IOrderItemContext,
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias, unicorn/no-this-assignment
+      handlerContext = this;
+    });
+
+    order.itemsStatus.on(OrderItemEvent.create, handler);
+
+    await order.itemsStatus.create();
+
+    expect(handlerContext).toBeInstanceOf(Order);
+    expect(handler).toBeCalledTimes(1);
+    expect(handler).toBeCalledWith({ place: 'My warehouse' });
   });
 
   it('should throw error when transition is not possible', async () => {

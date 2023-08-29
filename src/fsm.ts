@@ -1,28 +1,5 @@
 import { StateMachineError } from './fsm.error';
-
-type Callback<
-  Context extends object,
-  T extends Array<unknown> = Array<unknown>,
-> =
-  | ((context: Context, ...arguments_: T) => Promise<void>)
-  | ((context: Context, ...arguments_: T) => void);
-type Guard<Context extends object, T extends Array<unknown> = Array<unknown>> =
-  | ((context: Context, ...arguments_: T) => boolean)
-  | ((context: Context, ...arguments_: T) => Promise<boolean>);
-
-type AllowedNames = string | number;
-export interface ITransition<
-  State extends AllowedNames,
-  Event extends AllowedNames,
-  Context extends object,
-> {
-  from: State;
-  event: Event;
-  to: State;
-  onEnter?: Callback<Context>;
-  onExit?: Callback<Context>;
-  guard?: Guard<Context>;
-}
+import { AllowedNames, Guard, Callback, ITransition } from './types';
 
 export interface IStateMachineParameters<
   State extends AllowedNames,
@@ -108,7 +85,7 @@ export function t<
   };
 }
 
-class _StateMachine<
+export class _StateMachine<
   State extends AllowedNames,
   Event extends AllowedNames,
   Context extends object,
@@ -128,9 +105,15 @@ class _StateMachine<
     Map<State, ITransition<State, Event, Context>>
   >;
 
-  private _initialParameters: IStateMachineParameters<State, Event, Context>;
+  protected _subscribers = new Map<
+    Event,
+    /**
+     * Map of original callbacks by bound callbacks.
+     */
+    Map<Callback<Context>, Callback<Context>>
+  >();
 
-  private _subscribers = new Map<Event, Array<Callback<Context>>>();
+  private _initialParameters: IStateMachineParameters<State, Event, Context>;
 
   constructor(parameters: IStateMachineParameters<State, Event, Context>) {
     this._initialParameters = parameters;
@@ -145,16 +128,24 @@ class _StateMachine<
     this.populateCheckers(parameters.transitions);
   }
 
+  /**
+   * Current state.
+   */
   get current(): State {
     return this._current;
   }
 
+  /**
+   * Context object.
+   */
   get context(): Context {
     return this._ctx;
   }
 
   /**
    * Returns new state machine with added transition with the same context, initial state and subscribers.
+   * @param transition - Transition to add.
+   * @returns New state machine.
    */
   public addTransition<
     NewState extends AllowedNames,
@@ -176,7 +167,7 @@ class _StateMachine<
     // we need to copy subscribers to the new state machine
     _stateMachine._subscribers = new Map();
     for (const [event, callbacks] of this._subscribers.entries()) {
-      _stateMachine._subscribers.set(event, [...callbacks]);
+      _stateMachine._subscribers.set(event, callbacks);
     }
 
     return _stateMachine;
@@ -184,6 +175,7 @@ class _StateMachine<
 
   /**
    * Checks if the state machine is in the given state.
+   * @param state - State to check.
    */
   public is(state: State): boolean {
     return this._current === state;
@@ -191,6 +183,7 @@ class _StateMachine<
 
   /**
    * Checks if the event can be triggered in the current state.
+   * @param event - Event to check.
    */
   public async can<Arguments extends Array<unknown> = Array<unknown>>(
     event: Event,
@@ -213,13 +206,17 @@ class _StateMachine<
 
   /**
    * Subscribe to event. Will execute after transition.
+   *
+   * @param event - Event to subscribe to.
+   * @param callback - Callback to execute.
    */
   public async on(event: Event, callback: Callback<Context>) {
     if (!this._subscribers.has(event)) {
-      this._subscribers.set(event, []);
+      this._subscribers.set(event, new Map());
     }
 
-    this._subscribers.get(event)?.push(callback);
+    const callbacks = this._subscribers.get(event);
+    callbacks?.set(callback, callback.bind(this));
   }
 
   /**
@@ -232,10 +229,7 @@ class _StateMachine<
     }
 
     const callbacks = this._subscribers.get(event);
-    const index = callbacks?.indexOf(callback) ?? -1;
-    if (index !== -1) {
-      callbacks?.splice(index, 1);
-    }
+    callbacks?.delete(callback);
   }
 
   /**
@@ -261,16 +255,10 @@ class _StateMachine<
       // delay execution to make it really async
       setTimeout(() => {
         const transitions = this._transitions.get(event);
-        const transition = transitions?.get(this._current);
 
-        if (!transition) {
-          reject(
-            new StateMachineError(
-              `Transition for event ${event} and state ${this._current} of ${this._id} is not found`,
-            ),
-          );
-          return;
-        }
+        // we already checked if the event is allowed
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+        const transition = transitions?.get(this._current)!;
 
         this.executeTransition(transition, ...arguments_).then(() =>
           resolve(this),
@@ -390,8 +378,8 @@ class _StateMachine<
       await onEnter?.(this._ctx, ...arguments_);
       this._current = to ?? this._current;
 
-      for (const subscriber of subscribers ?? []) {
-        await Reflect.apply(subscriber, this, [this._ctx, ...arguments_]);
+      for (const subscriber of subscribers?.values() ?? []) {
+        await subscriber(this._ctx, ...arguments_);
       }
 
       await onExit?.(this._ctx, ...arguments_);

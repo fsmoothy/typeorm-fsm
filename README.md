@@ -165,12 +165,15 @@ You can subscribe to transition using the `on` method. And unsubscribe using the
 
 ```typescript
 const order = new Order();
+
 const subscriber = (state: OrderItemState) => {
   console.log(state);
 };
-order.itemsStatus.on(subscriber);
+order.itemsStatus.on(OrderItemEvent.create, subscriber);
+
 await order.itemsStatus.create();
-order.itemsStatus.off(subscriber);
+
+order.itemsStatus.off(OrderItemEvent.create, subscriber);
 ```
 
 ### Lifecycle
@@ -183,6 +186,23 @@ The state machine has the following lifecycle methods in the order of execution:
 - transition
 - subscribers
 - onExit
+```
+
+### Bound lifecycle methods
+
+The entity instance will be bound to the lifecycle methods. You can access the entity instance using `this` keyword.
+
+```typescript
+const order = new Order();
+
+order.itemsStatus.onEnter(function (this: Order) {
+  console.log(this.id);
+});
+order.itemStatus.on(OrderItemEvent.create, function (this: Order) {
+  console.log(this.id);
+});
+
+await order.itemsStatus.create();
 ```
 
 ## Installation

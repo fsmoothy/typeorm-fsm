@@ -11,5 +11,5 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js'],
   coverageDirectory: './coverage',
   reporters: ['default'],
-  collectCoverageFrom: ['src/**/*.ts'],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/**/index.ts'],
 };
