@@ -25,7 +25,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "commit": "cz",
-    "doc": "typedoc src/index.ts --tsconfig tsconfig.build.json --plugin typedoc-plugin-mermaid"
+    "docs:build": "typedoc src/index.ts --tsconfig tsconfig.build.json --plugin typedoc-plugin-mermaid"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
