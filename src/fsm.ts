@@ -1,11 +1,21 @@
-type Callback<Context, T = unknown> =
-  | ((context: Context, ...arguments_: Array<T>) => Promise<void>)
-  | ((context: Context, ...arguments_: Array<T>) => void);
-type Guard<Context, T = unknown> =
-  | ((context: Context, ...arguments_: Array<T>) => boolean)
-  | ((context: Context, ...arguments_: Array<T>) => Promise<boolean>);
+import { StateMachineError } from './fsm.error';
 
-export interface ITransition<State, Event, Context> {
+type Callback<
+  Context extends object,
+  T extends Array<unknown> = Array<unknown>,
+> =
+  | ((context: Context, ...arguments_: T) => Promise<void>)
+  | ((context: Context, ...arguments_: T) => void);
+type Guard<Context extends object, T extends Array<unknown> = Array<unknown>> =
+  | ((context: Context, ...arguments_: T) => boolean)
+  | ((context: Context, ...arguments_: T) => Promise<boolean>);
+
+type AllowedNames = string | number;
+export interface ITransition<
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
+> {
   from: State;
   event: Event;
   to: State;
@@ -14,42 +24,56 @@ export interface ITransition<State, Event, Context> {
   guard?: Guard<Context>;
 }
 
-export interface IStateMachineParameters<State, Event, Context> {
-  id?: string;
-  initial: State;
+export interface IStateMachineParameters<
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
+  Transitions extends Array<ITransition<State, Event, Context>> = Array<
+    ITransition<State, Event, Context>
+  >,
+> {
   ctx?: Context;
-  transitions: Array<ITransition<State, Event, Context>>;
+  initial: State;
+  transitions: Transitions;
+  id?: string;
 }
 
-type StateMachineEvents<Event extends string | number> = {
-  [key in Event]: <T>(...arguments_: Array<T>) => Promise<void>;
+type StateMachineEvents<Event extends string | number | symbol> = {
+  /**
+   * @param arguments_ - Arguments to pass to lifecycle hooks.
+   */
+  [key in Event]: <T extends Array<unknown>>(...arguments_: T) => Promise<void>;
 };
 
-type CapitalizeString<S extends string | number> = S extends string
-  ? Capitalize<S>
-  : S;
+type CapitalizeString<S> = S extends string ? Capitalize<S> : S;
 
-type StateMachineCheckers<State extends string | number> = {
+type StateMachineCheckers<State extends AllowedNames> = {
   [key in `is${CapitalizeString<State>}`]: () => boolean;
 };
 
+export type IStateMachine<
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
+> = _StateMachine<State, Event, Context> &
+  StateMachineEvents<Event> &
+  StateMachineCheckers<State>;
+
 export type StateMachineConstructor = {
   new <
-    const State extends string | number,
-    const Event extends string | number,
-    Context extends Record<string, unknown> = Record<string, unknown>,
+    State extends AllowedNames,
+    Event extends AllowedNames,
+    Context extends object,
   >(
     parameters: IStateMachineParameters<State, Event, Context>,
-  ): _StateMachine<State, Event, Context> &
-    StateMachineEvents<Event> &
-    StateMachineCheckers<State>;
+  ): IStateMachine<State, Event, Context>;
 };
 
 function noop() {
   return;
 }
 
-function capitalize(parameter: string | number) {
+function capitalize(parameter: unknown) {
   if (typeof parameter !== 'string') {
     return parameter;
   }
@@ -57,7 +81,18 @@ function capitalize(parameter: string | number) {
   return parameter.charAt(0).toUpperCase() + parameter.slice(1);
 }
 
-export function t<State, Event, Context>(
+/**
+ * Creates a new transition.
+ * @param from - From state.
+ * @param event - Event name.
+ * @param to - To state.
+ * @param guard - Guard function.
+ */
+export function t<
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
+>(
   from: State,
   event: Event,
   to: State,
@@ -74,9 +109,9 @@ export function t<State, Event, Context>(
 }
 
 class _StateMachine<
-  const State extends string | number,
-  const Event extends string | number,
-  Context extends Record<string, unknown> = Record<string, unknown>,
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
 > {
   protected _current: State;
   protected _id: string;
@@ -122,8 +157,8 @@ class _StateMachine<
    * Returns new state machine with added transition with the same context, initial state and subscribers.
    */
   public addTransition<
-    const NewState extends string | number,
-    const NewEvent extends string | number,
+    NewState extends AllowedNames,
+    NewEvent extends AllowedNames,
   >(transition: ITransition<NewState, NewEvent, Context>) {
     const parameters: IStateMachineParameters<
       State | NewState,
@@ -204,20 +239,20 @@ class _StateMachine<
    * Transitions the state machine to the next state.
    *
    * @param event - Event to trigger.
-   * @param arguments_ - Arguments to pass to the callbacks.
-   * @param arguments_[0] - If argument is function it will execute after the transition.
+   * @param arguments_ - Arguments to pass to lifecycle hooks.
    */
   public async transition<Arguments extends Array<unknown> = Array<unknown>>(
     event: Event,
     ...arguments_: Arguments
   ) {
-    return await new Promise<this>((resolve, reject) => {
-      if (!this.can(event)) {
+    return await new Promise<this>(async (resolve, reject) => {
+      if (!(await this.can(event))) {
         reject(
-          new Error(
+          new StateMachineError(
             `Event ${event} is not allowed in state ${this._current} of ${this._id}`,
           ),
         );
+        return;
       }
 
       // delay execution to make it really async
@@ -227,7 +262,7 @@ class _StateMachine<
 
         if (!transition) {
           reject(
-            new Error(
+            new StateMachineError(
               `Transition for event ${event} and state ${this._current} of ${this._id} is not found`,
             ),
           );
@@ -316,11 +351,15 @@ class _StateMachine<
     transitions: Array<ITransition<State, Event, Context>>,
   ) {
     for (const transition of transitions) {
-      const { from } = transition;
+      const { from, to } = transition;
       const capitalizedFrom = capitalize(from);
+      const capitalizedTo = capitalize(to);
 
       // @ts-expect-error We need to assign the method to the instance.
       this[`is${capitalizedFrom}`] = () => this.is(from);
+
+      // @ts-expect-error We need to assign the method to the instance.
+      this[`is${capitalizedTo}`] = () => this.is(to);
     }
   }
 
@@ -342,30 +381,33 @@ class _StateMachine<
   >(transition: ITransition<State, Event, Context>, ...arguments_: Arguments) {
     const { from, to, onEnter, onExit, event } = transition ?? {};
 
-    let transitionCallback: Callback<Context> = noop;
-    if (arguments_.length > 0 && typeof arguments_[0] === 'function') {
-      transitionCallback = arguments_.shift() as Callback<Context>;
-    }
-
     const subscribers = this._subscribers.get(event);
 
     try {
       await onEnter?.(this._ctx, ...arguments_);
       this._current = to ?? this._current;
-      await transitionCallback(this._ctx, ...arguments_);
 
       for (const subscriber of subscribers ?? []) {
-        await subscriber(this._ctx, ...arguments_);
+        await Reflect.apply(subscriber, this, [this._ctx, ...arguments_]);
       }
 
       await onExit?.(this._ctx, ...arguments_);
-    } catch (error: unknown) {
-      if (!(error instanceof Error)) {
+    } catch (error) {
+      if (error instanceof StateMachineError) {
         throw error;
       }
 
-      error.message = `Exception caught in ${this._id} on transition from ${from} to ${to}: ${error.message}`;
-      throw error;
+      if (!(error instanceof Error)) {
+        throw new StateMachineError(
+          `Exception caught in ${this._id} on transition from ${from} to ${to}: ${error}`,
+          transition,
+        );
+      }
+
+      throw new StateMachineError(
+        `Exception caught in ${this._id} on transition from ${from} to ${to}: ${error.message}`,
+        transition,
+      );
     }
   }
 }
@@ -398,9 +440,9 @@ class _StateMachine<
  * @returns New state machine.
  */
 export const StateMachine = function <
-  const State extends string | number,
-  const Event extends string | number,
-  Context extends Record<string, unknown> = Record<string, unknown>,
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
 >(
   this: _StateMachine<State, Event, Context>,
   parameters: IStateMachineParameters<State, Event, Context>,

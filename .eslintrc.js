@@ -115,7 +115,7 @@ module.exports = {
             allow: ['arrowFunctions'],
           },
         ],
-        '@typescript-eslint/no-explicit-any': ERROR,
+        '@typescript-eslint/no-explicit-any': OFF,
         '@typescript-eslint/no-unused-vars': [
           ERROR,
           {

@@ -5,12 +5,10 @@
  * @see https://jestjs.io/docs/configuration
  */
 module.exports = {
+  preset: 'ts-jest',
   displayName: 'typeorm-fsm',
   testEnvironment: 'node',
   moduleFileExtensions: ['ts', 'js'],
-  transform: {
-    '^.+\\.(t|j)sx?$': '@swc/jest',
-  },
   coverageDirectory: './coverage',
   reporters: ['default'],
   collectCoverageFrom: ['src/**/*.ts'],

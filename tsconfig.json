@@ -5,7 +5,7 @@
       "node"
     ],
     "module": "commonjs",
-    "target": "ES2021",
+    "target": "ES2022",
     "outDir": "./dist",
     "sourceMap": true,
     "esModuleInterop": true,
@@ -15,8 +15,8 @@
     "resolveJsonModule": true,
     "declaration": true,
     "strict": true,
+    "strictPropertyInitialization": false,
     "importHelpers": true,
-    "incremental": true,
   },
   "include": [
     "src/**/*",

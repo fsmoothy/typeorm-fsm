@@ -101,7 +101,18 @@ describe('StateMachine', () => {
               return true;
             },
           ),
-          t(State.pending, Event.resolve, State.idle),
+          {
+            from: State.pending,
+            event: Event.resolve,
+            to: State.idle,
+            guard: (context) => {
+              context.n += 1;
+              return true;
+            },
+            onEnter() {
+              console.log(this);
+            },
+          },
         ],
       });
 
@@ -115,8 +126,8 @@ describe('StateMachine', () => {
         t(State.pending, Event.resolve, State.resolved),
       );
 
-      await _stateMachine.transition(Event.resolve);
-      expect(_stateMachine.is(State.resolved)).toBe(true);
+      await _stateMachine.resolve();
+      expect(_stateMachine.isResolved()).toBe(true);
       expect(_stateMachine.context).toEqual({ n: 2 });
     });
 
@@ -131,7 +142,22 @@ describe('StateMachine', () => {
       });
 
       await expect(stateMachine.transition(Event.resolve)).rejects.toThrow(
-        'Transition for event resolve and state idle of fetch fsm is not found',
+        'Event resolve is not allowed in state idle of fetch fsm',
+      );
+    });
+
+    it("should throw if transition don't pass guard", async () => {
+      const stateMachine = new StateMachine({
+        id: 'guard fsm',
+        initial: State.idle,
+        transitions: [
+          t(State.idle, Event.fetch, State.pending, () => false),
+          t(State.pending, Event.resolve, State.idle),
+        ],
+      });
+
+      await expect(stateMachine.transition(Event.fetch)).rejects.toThrow(
+        'Event fetch is not allowed in state idle of guard fsm',
       );
     });
   });

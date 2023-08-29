@@ -12,7 +12,6 @@ Library was designed to use `enums` as events and states, however, string enums 
 - guard
 - onEnter
 - transition
-- transition callback
 - subscribers
 - onExit
 ```
