@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/bondiano/typeorm-fsm/compare/v1.1.0...v1.1.1) (2023-08-29)
+
+
+### Bug Fixes
+
+* to publish ([a052fe5](https://github.com/bondiano/typeorm-fsm/commit/a052fe51012b7f3318ed7d4f165f8c975be5368e))
+
 # [1.1.0](https://github.com/bondiano/typeorm-fsm/compare/v1.0.0...v1.1.0) (2023-08-29)
 
 
