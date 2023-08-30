@@ -1,6 +1,6 @@
 {
-  "name": "typeorm-fsm",
-  "version": "1.1.0",
+  "name": "fsm-typeorm",
+  "version": "1.1.2",
   "author": "Vassiliy Kuzenkov (bondiano)",
   "license": "MIT",
   "description": "Strong typed state machine for your TypeORM Entities",
@@ -8,8 +8,8 @@
     "type": "git",
     "url": "https://github.com/bondiano/typeorm-fsm"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "keywords": [
     "typeorm",
     "fsm",
@@ -19,22 +19,24 @@
     "node": ">=16.0.0"
   },
   "scripts": {
+    "prebuild": "npm run clean",
     "build": "tsc --project tsconfig.build.json",
+    "postbuild": "cp -r package.json dist && cp -r README.md dist",
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "commit": "cz",
     "docs:build": "typedoc src/index.ts --tsconfig tsconfig.build.json --plugin typedoc-plugin-mermaid",
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "clean": "rm -rf dist",
+    "postversion": "cp -r package.json .."
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^10.0.4",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/npm": "^10.0.5",
     "@types/better-sqlite3": "^7.6.4",
     "@types/jest": "^29.5.4",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
@@ -55,7 +57,8 @@
     "semantic-release": "^21.1.1",
     "ts-jest": "^29.1.1",
     "typedoc": "^0.25.0",
-    "typedoc-plugin-mermaid": "^1.10.0"
+    "typedoc-plugin-mermaid": "^1.10.0",
+    "typescript": "^5.2.2"
   },
   "peerDependencies": {
     "typeorm": "~0.3.0"

@@ -117,7 +117,7 @@ Let's take a look at the `StateMachineEntity` function. It accepts an object wit
 
 ### Transitions
 
-The most common way to define a transition is by using the ﻿t function, which requires three arguments (guard is optional).
+The most common way to define a transition is by using the `t` function, which requires three arguments (guard is optional).
 
 ```typescript
 t(from: State, event: Event, to: State, guard?: (context: Context) => boolean)
@@ -251,7 +251,7 @@ try {
 ## Installation
 
 ```bash
-npm install typeorm typeorm-fsm
+npm install typeorm fsm-typeorm
 ```
 
 ## Latest Changes
