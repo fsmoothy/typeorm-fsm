@@ -81,9 +81,9 @@ function capitalize(parameter: unknown) {
  * @param guard - Guard function.
  */
 export function t<
-  Context extends object,
   State extends AllowedNames,
   Event extends AllowedNames,
+  Context extends object,
 >(
   from: Array<State> | State,
   event: Event,

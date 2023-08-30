@@ -25,10 +25,17 @@ interface IClockContext {
     hours: number;
   };
   isAlarmOn: boolean;
-  isAlarmRinging: boolean;
 }
 
 type Clock = IStateMachine<ClockState, ClockEvent, IClockContext>;
+
+const addMinutes = (type: 'time' | 'alarm') => (context: IClockContext) => {
+  context[type].minutes = (context[type].minutes + 1) % 60;
+};
+
+const addHours = (type: 'time' | 'alarm') => (context: IClockContext) => {
+  context[type].hours = (context[type].hours + 1) % 24;
+};
 
 const createAlarmClock = (): Clock => {
   const clockState = new StateMachine({
@@ -43,55 +50,51 @@ const createAlarmClock = (): Clock => {
         hours: 6,
       },
       isAlarmOn: false as boolean,
-      isAlarmRinging: false as boolean,
     },
     transitions: [
       t(ClockState.Clock, ClockEvent.ClickMode, ClockState.Alarm),
       t(ClockState.Alarm, ClockEvent.ClickMode, ClockState.Clock),
-      {
-        from: ClockState.Clock,
-        event: ClockEvent.ClickH,
-        to: ClockState.Clock,
-        onEnter(context) {
-          context.time.hours = (context.time.hours + 1) % 24;
-        },
-      },
-      {
-        from: ClockState.Clock,
-        event: ClockEvent.ClickM,
-        to: ClockState.Clock,
-        onEnter(context) {
-          context.time.minutes = (context.time.minutes + 1) % 60;
-        },
-      },
-      {
-        from: ClockState.Alarm,
-        event: ClockEvent.ClickH,
-        to: ClockState.Alarm,
-        onEnter(context) {
-          context.alarm.hours = (context.alarm.hours + 1) % 24;
-        },
-      },
-      {
-        from: ClockState.Alarm,
-        event: ClockEvent.ClickM,
-        to: ClockState.Alarm,
-        onEnter(context) {
-          context.alarm.minutes = (context.alarm.minutes + 1) % 60;
-        },
-      },
-      {
-        from: ClockState.Bell,
-        event: ClockEvent.LongClickMode,
-        to: ClockState.Clock,
-        onExit(context) {
-          context.isAlarmRinging = false;
-        },
-      },
+      t(ClockState.Bell, ClockEvent.ClickMode, ClockState.Clock),
       t(ClockState.Bell, ClockEvent.ClickH, ClockState.Bell),
       t(ClockState.Bell, ClockEvent.ClickM, ClockState.Bell),
       t(ClockState.Bell, ClockEvent.ClickMode, ClockState.Bell),
       t(ClockState.Bell, ClockEvent.Tick, ClockState.Bell),
+      t(ClockState.Bell, ClockEvent.LongClickMode, ClockState.Clock),
+      t(ClockState.Clock, ClockEvent.Tick, ClockState.Clock),
+      t(ClockState.Alarm, ClockEvent.Tick, ClockState.Alarm),
+      t(
+        [ClockState.Clock, ClockState.Alarm],
+        ClockEvent.ActivateAlarm,
+        ClockState.Bell,
+        (context: IClockContext) =>
+          context.isAlarmOn &&
+          context.time.hours === context.alarm.hours &&
+          context.time.minutes === context.alarm.minutes,
+      ),
+      {
+        from: ClockState.Clock,
+        event: ClockEvent.ClickH,
+        to: ClockState.Clock,
+        onEnter: addHours('time'),
+      },
+      {
+        from: ClockState.Clock,
+        event: ClockEvent.ClickM,
+        to: ClockState.Clock,
+        onEnter: addMinutes('time'),
+      },
+      {
+        from: ClockState.Alarm,
+        event: ClockEvent.ClickH,
+        to: ClockState.Alarm,
+        onEnter: addHours('alarm'),
+      },
+      {
+        from: ClockState.Alarm,
+        event: ClockEvent.ClickM,
+        to: ClockState.Alarm,
+        onEnter: addMinutes('alarm'),
+      },
       {
         from: ClockState.Clock,
         event: ClockEvent.LongClickMode,
@@ -100,23 +103,6 @@ const createAlarmClock = (): Clock => {
           context.isAlarmOn = !context.isAlarmOn;
         },
       },
-      {
-        from: [ClockState.Clock, ClockState.Alarm],
-        event: ClockEvent.ActivateAlarm,
-        to: ClockState.Bell,
-        guard(context) {
-          return (
-            context.isAlarmOn &&
-            context.time.hours === context.alarm.hours &&
-            context.time.minutes === context.alarm.minutes
-          );
-        },
-        onExit(context) {
-          context.isAlarmRinging = true;
-        },
-      },
-      t(ClockState.Clock, ClockEvent.Tick, ClockState.Clock),
-      t(ClockState.Alarm, ClockEvent.Tick, ClockState.Alarm),
     ],
   });
 
@@ -195,6 +181,7 @@ describe('Alarm clock', () => {
     await clock.clickMode();
 
     await clock.clickH();
+
     expect(clock.context.time.hours).toBe(13);
     expect(clock.context.time.minutes).toBe(1);
     expect(clock.context.alarm.hours).toBe(7);
