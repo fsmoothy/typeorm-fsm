@@ -227,19 +227,21 @@ export class _StateMachine<
    * @param event - Event to subscribe to.
    * @param callback - Callback to execute.
    */
-  public async on(event: Event, callback: Callback<Context>) {
+  public on(event: Event, callback: Callback<Context>) {
     if (!this._subscribers.has(event)) {
       this._subscribers.set(event, new Map());
     }
 
     const callbacks = this._subscribers.get(event);
     callbacks?.set(callback, callback.bind(this));
+
+    return this;
   }
 
   /**
    * Unsubscribe from event.
    */
-  public async off(event: Event, callback: Callback<Context>) {
+  public off(event: Event, callback: Callback<Context>) {
     if (!this._subscribers.has(event)) {
       console.warn(`Event ${event} is not subscribed in ${this._id}`);
       return;
@@ -247,6 +249,8 @@ export class _StateMachine<
 
     const callbacks = this._subscribers.get(event);
     callbacks?.delete(callback);
+
+    return this;
   }
 
   /**
