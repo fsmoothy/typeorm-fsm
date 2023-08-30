@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/bondiano/typeorm-fsm/compare/v1.1.2...v1.1.3) (2023-08-30)
+
+
+### Bug Fixes
+
+* update semantic-release config ([be539cb](https://github.com/bondiano/typeorm-fsm/commit/be539cb0ab1f81098a84962d7f800d7486264284))
+
 # [1.1.0](https://github.com/bondiano/typeorm-fsm/compare/v1.0.0...v1.1.0) (2023-08-29)
 
 
