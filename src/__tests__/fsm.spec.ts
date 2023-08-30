@@ -92,7 +92,17 @@ describe('StateMachine', () => {
         idle = 'idle',
         pending = 'pending',
         resolved = 'resolved',
+        rejected = 'rejected',
       }
+
+      enum Event {
+        fetch = 'fetch',
+        resolve = 'resolve',
+        reject = 'reject',
+        reset = 'reset',
+      }
+
+      const callback = jest.fn();
 
       const stateMachine = new StateMachine({
         initial: State.idle,
@@ -110,31 +120,41 @@ describe('StateMachine', () => {
           {
             from: State.pending,
             event: Event.resolve,
-            to: State.idle,
-            guard: (context) => {
-              context.n += 1;
+            to: State.resolved,
+            guard: () => {
               return true;
             },
-            onEnter() {
-              console.log(this);
+            onEnter(context) {
+              context.n += 1;
             },
           },
         ],
-      });
+      }).on(Event.resolve, callback);
 
-      await stateMachine.transition(Event.fetch);
-      expect(stateMachine.current).toBe(State.pending);
+      await stateMachine.fetch();
 
       // @ts-expect-error - we should not be able to check type in old state machine
-      stateMachine.is(State.resolved);
+      stateMachine.is(State.rejected);
 
-      const _stateMachine = stateMachine.addTransition(
-        t(State.pending, Event.resolve, State.resolved),
-      );
+      const _stateMachine = stateMachine
+        .addTransition(t(State.pending, Event.reject, State.rejected))
+        .addTransition(
+          t([State.resolved, State.rejected], Event.reset, State.idle),
+        )
+        // try to add transition with the same event - show warning
+        .addTransition(t(State.pending, Event.reject, State.rejected));
 
       await _stateMachine.resolve();
       expect(_stateMachine.isResolved()).toBe(true);
-      expect(_stateMachine.context).toEqual({ n: 2 });
+      expect(_stateMachine.context).toEqual({ n: 3 });
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      await _stateMachine.reset();
+      expect(_stateMachine.isIdle()).toBe(true);
+
+      await _stateMachine.fetch();
+      await _stateMachine.reject();
+      expect(_stateMachine.isRejected()).toBe(true);
     });
 
     it('should throw if transition is not possible', async () => {
@@ -209,19 +229,6 @@ describe('StateMachine', () => {
     });
   });
 
-  describe('isFinal', () => {
-    it('should return true if current state is passed', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [t(State.idle, Event.fetch, State.pending)],
-      });
-
-      await stateMachine.transition(Event.fetch);
-
-      expect(stateMachine.isFinal()).toBe(true);
-    });
-  });
-
   describe('subscribe', () => {
     it('should be abele to subscribe to transition event', async () => {
       const stateMachine = createFetchStateMachine();
@@ -248,6 +255,13 @@ describe('StateMachine', () => {
 
       await stateMachine.transition(Event.fetch);
       expect(handler).toHaveBeenCalledTimes(0);
+    });
+
+    it('should do nothing on unsubscribe if handler is not subscribed', async () => {
+      const stateMachine = createFetchStateMachine();
+      const callback = jest.fn();
+
+      stateMachine.off(Event.fetch, callback);
     });
   });
 });

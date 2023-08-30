@@ -288,34 +288,6 @@ export class _StateMachine<
     });
   }
 
-  /**
-   * Checks if the current state of the state machine is a final state.
-   * A final state is a state from which no allowed events can be triggered.
-   * @returns `true` if the current state is a final state, `false` otherwise.
-   */
-  public isFinal(): boolean {
-    if (!this._allowedEvents.has(this._current)) {
-      return true;
-    }
-
-    const allowedEvents = [
-      ...(this._allowedEvents.get(this._current)?.values() ?? []),
-    ];
-
-    return allowedEvents.every((event) => {
-      const transitions = [...(this._transitions.get(event)?.values() ?? [])];
-      return !transitions.some((transition) => {
-        const { guard, from } = transition;
-
-        if (from) {
-          return true;
-        }
-
-        return guard?.(this._ctx) ?? true;
-      });
-    });
-  }
-
   private prepareEvents(
     transitions: Array<ITransition<State, Event, Context>>,
   ) {

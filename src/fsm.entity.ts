@@ -12,6 +12,7 @@ import {
   IStateMachine,
   _StateMachine,
 } from './fsm';
+import { StateMachineError } from './fsm.error';
 import { AllowedNames, ITransition } from './types';
 
 export interface IStateMachineEntityColumnParameters<
@@ -101,7 +102,7 @@ function initializeStateMachine<
   } = parameters;
 
   if (!Array.isArray(transitions) || transitions.length === 0) {
-    throw new Error('Transitions are not defined');
+    throw new StateMachineError('Transitions are not defined');
   }
 
   // @ts-expect-error - we're using variadic tuple
