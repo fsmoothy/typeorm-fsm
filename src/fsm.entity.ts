@@ -22,7 +22,8 @@ export interface IStateMachineEntityColumnParameters<
     State,
     Event,
     Context,
-    Array<ITransition<State, Event, any>>
+    ITransition<State, Event, any>,
+    [ITransition<State, Event, any>, ...Array<ITransition<State, Event, any>>]
   > {
   persistContext?: boolean;
   /**
@@ -99,6 +100,11 @@ function initializeStateMachine<
     ctx,
   } = parameters;
 
+  if (!Array.isArray(transitions) || transitions.length === 0) {
+    throw new Error('Transitions are not defined');
+  }
+
+  // @ts-expect-error - we're using variadic tuple
   parameters.transitions = transitions.map((transition) => {
     return {
       ...transition,
@@ -150,6 +156,38 @@ function initializeStateMachine<
   };
 }
 
+/**
+ * Mixin to extend your entity with state machine. Extends BaseEntity.
+ * @param parameters - state machine parameters
+ *
+ * @example
+ * import { StateMachineEntity, t } from 'typeorm-fsm';
+ *
+ * enum OrderState {
+ *  draft = 'draft',
+ *  pending = 'pending',
+ *  paid = 'paid',
+ *  completed = 'completed',
+ *  }
+ *
+ * enum OrderEvent {
+ * create = 'create',
+ * pay = 'pay',
+ * complete = 'complete',
+ * }
+ *
+ * @Entity()
+ * class Order extends StateMachineEntity({
+ *   status: {
+ *     id: 'orderStatus',
+ *     initial: OrderState.draft,
+ *   transitions: [
+ *     t(OrderState.draft, OrderEvent.create, OrderState.pending),
+ *     t(OrderState.pending, OrderEvent.pay, OrderState.paid),
+ *     t(OrderState.paid, OrderEvent.complete, OrderState.completed),
+ *   ],
+ * }}) {}
+ */
 export const StateMachineEntity = function <
   Parameters extends {
     [Column in Columns]: IStateMachineEntityColumnParameters<

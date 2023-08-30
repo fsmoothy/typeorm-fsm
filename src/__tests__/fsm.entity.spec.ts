@@ -73,7 +73,11 @@ class Order extends StateMachineEntity({
           context.place = place;
         },
       },
-      t(OrderItemState.warehouse, OrderItemEvent.ship, OrderItemState.shipping),
+      t(
+        [OrderItemState.assembly, OrderItemState.warehouse],
+        OrderItemEvent.ship,
+        OrderItemState.shipping,
+      ),
       t(
         OrderItemState.shipping,
         OrderItemEvent.deliver,

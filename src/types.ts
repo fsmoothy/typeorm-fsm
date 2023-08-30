@@ -12,11 +12,11 @@ export type Guard<Context extends object, T extends Array<any> = Array<any>> =
   | ((context: Context, ...arguments_: T) => Promise<boolean>);
 
 export interface ITransition<
-  State extends AllowedNames,
+  State extends AllowedNames | Array<AllowedNames>,
   Event extends AllowedNames,
   Context extends object,
 > {
-  from: State;
+  from: Array<State> | State;
   event: Event;
   to: State;
   onEnter?: Callback<Context>;

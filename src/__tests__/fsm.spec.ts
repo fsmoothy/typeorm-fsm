@@ -25,6 +25,18 @@ describe('StateMachine', () => {
     expect(stateMachine.current).toBe(State.idle);
   });
 
+  it('should be possible to pass array of from', () => {
+    const stateMachine = new StateMachine({
+      initial: State.pending,
+      transitions: [
+        t([State.idle, State.pending], Event.fetch, State.pending),
+        t(State.pending, Event.resolve, State.idle),
+      ],
+    });
+
+    expect(stateMachine.current).toBe(State.pending);
+  });
+
   describe('transition', () => {
     it('should change current state', async () => {
       const stateMachine = new StateMachine({

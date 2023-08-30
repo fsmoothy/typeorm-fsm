@@ -2,12 +2,18 @@ import { StateMachineError } from './fsm.error';
 import { AllowedNames, Guard, Callback, ITransition } from './types';
 
 export interface IStateMachineParameters<
-  State extends AllowedNames,
+  State extends AllowedNames | Array<AllowedNames>,
   Event extends AllowedNames,
   Context extends object,
-  Transitions extends Array<ITransition<State, Event, Context>> = Array<
-    ITransition<State, Event, Context>
+  Transition extends ITransition<State, Event, Context> = ITransition<
+    State,
+    Event,
+    Context
   >,
+  Transitions extends [Transition, ...Array<Transition>] = [
+    Transition,
+    ...Array<Transition>,
+  ],
 > {
   ctx?: Context;
   initial: State;
@@ -28,7 +34,7 @@ type StateMachineTransitionCheckers<Event extends AllowedNames> = {
   /**
    * @param arguments_ - Arguments to pass to guard.
    */
-  [key in `can${CapitalizeString<Event>}`]: () => boolean;
+  [key in `can${CapitalizeString<Event>}`]: () => Promise<boolean>;
 };
 
 type StateMachineCheckers<State extends AllowedNames> = {
@@ -69,16 +75,17 @@ function capitalize(parameter: unknown) {
 /**
  * Creates a new transition.
  * @param from - From state.
+ * @param from[] - From states.
  * @param event - Event name.
  * @param to - To state.
  * @param guard - Guard function.
  */
 export function t<
+  Context extends object,
   State extends AllowedNames,
   Event extends AllowedNames,
-  Context extends object,
 >(
-  from: State,
+  from: Array<State> | State,
   event: Event,
   to: State,
   guard?: Guard<Context>,
@@ -308,10 +315,15 @@ export class _StateMachine<
   ) {
     return transitions.reduce((accumulator, transition) => {
       const { from, event } = transition;
-      if (!accumulator.has(from)) {
-        accumulator.set(from, new Set<Event>());
+      const froms = Array.isArray(from) ? from : [from];
+
+      for (const from of froms) {
+        if (!accumulator.has(from)) {
+          accumulator.set(from, new Set<Event>());
+        }
+
+        accumulator.get(from)?.add(event);
       }
-      accumulator.get(from)?.add(event);
 
       return accumulator;
     }, new Map<State, Set<Event>>());
@@ -322,13 +334,19 @@ export class _StateMachine<
   ) {
     return transitions.reduce((accumulator, transition) => {
       const { from, event } = transition;
+
+      const froms = Array.isArray(from) ? from : [from];
+
       if (!accumulator.has(event)) {
         accumulator.set(
           event,
           new Map<State, ITransition<State, Event, Context>>(),
         );
       }
-      accumulator.get(event)?.set(from, this.bindToCallbacks(transition));
+
+      for (const from of froms) {
+        accumulator.get(event)?.set(from, this.bindToCallbacks(transition));
+      }
 
       return accumulator;
     }, new Map<Event, Map<State, ITransition<State, Event, Context>>>());
@@ -425,6 +443,7 @@ export class _StateMachine<
  * @param parameters.ctx - Context object.
  * @param parameters.transitions - Transitions.
  * @param parameters.transitions[].from - From state.
+ * @param parameters.transitions[].from[] - From states.
  * @param parameters.transitions[].event - Event name.
  * @param parameters.transitions[].to - To state.
  * @param parameters.transitions[].onEnter - Callback to execute on enter.
@@ -444,8 +463,8 @@ export class _StateMachine<
  * @returns New state machine.
  */
 export const StateMachine = function <
-  State extends AllowedNames,
-  Event extends AllowedNames,
+  const State extends AllowedNames,
+  const Event extends AllowedNames,
   Context extends object,
 >(
   this: _StateMachine<State, Event, Context>,

@@ -30,6 +30,7 @@ Let's create a basic order state machine to showcase the features of the library
 stateDiagram-v2
   draft --> assembly: create
   assembly --> warehouse: assemble
+  assembly --> shipping: ship
   warehouse --> warehouse: transfer
   warehouse --> shipping: ship
   shipping --> delivered: deliver
@@ -90,7 +91,7 @@ class Order extends StateMachineEntity({
           context.place = place;
         },
       },
-      t(OrderItemState.warehouse, OrderItemEvent.ship, OrderItemState.shipping),
+      t([OrderItemState.assembly, OrderItemState.warehouse], OrderItemEvent.ship, OrderItemState.shipping),
       t(
         OrderItemState.shipping,
         OrderItemEvent.deliver,
