@@ -261,7 +261,7 @@ Take a look at the [CHANGELOG](CHANGELOG.md) for details about recent changes to
 
 ## Thanks
 
-This project was inspired by [aasm](https://github.com/aasm/aasm) and [typescript-fsm](https://github.com/eram/typescript-fsm).
+This project was inspired by [aasm](https://github.com/aasm/aasm) and [typeorm-fsm](https://github.com/eram/typescript-fsm).
 
 If you are specifically looking for a state machine, I recommend checking out [xstate](https://github.com/statelyai/xstate) first. It is a fantastic library with more features.
 
