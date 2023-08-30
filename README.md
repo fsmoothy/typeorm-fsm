@@ -19,6 +19,7 @@
   - [Bound lifecycle methods](#bound-lifecycle-methods)
   - [Error handling](#error-handling)
 - [Installation](#installation)
+- [Examples](#examples)
 - [Latest Changes](#latest-changes)
 - [Thanks](#thanks)
 
@@ -254,6 +255,10 @@ try {
 ```bash
 npm install typeorm fsm-typeorm
 ```
+
+## Examples
+
+Check out the [examples](./src/__tests__/examples) directory for more examples.
 
 ## Latest Changes
 
