@@ -66,10 +66,10 @@ class Order extends StateMachineEntity({
         from: OrderItemState.warehouse,
         event: OrderItemEvent.transfer,
         to: OrderItemState.warehouse,
-        guard(context: { place: string }, place: string) {
+        guard(context: IOrderItemContext, place: string) {
           return context.place !== place;
         },
-        onExit(context: { place: string }, place: string) {
+        onExit(context: IOrderItemContext, place: string) {
           context.place = place;
         },
       },

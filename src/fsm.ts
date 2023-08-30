@@ -136,6 +136,8 @@ export class _StateMachine<
     this._current = parameters.initial;
     this._ctx = parameters.ctx ?? ({} as Context);
 
+    this.checkDuplicateTransitions(parameters.transitions);
+
     this._allowedEvents = this.prepareEvents(parameters.transitions);
     this._transitions = this.prepareTransitions(parameters.transitions);
 
@@ -361,6 +363,36 @@ export class _StateMachine<
       this[event] = async (...arguments_: [unknown, ...Array<unknown>]) => {
         await this.transition(event, ...arguments_);
       };
+    }
+  }
+
+  /**
+   * Adds useful warnings on fsm initialization.
+   */
+  private checkDuplicateTransitions(
+    transitions: Array<ITransition<State, Event, Context>>,
+  ) {
+    const transitionsMap = new Map<
+      State,
+      Map<Event, ITransition<State, Event, Context>>
+    >();
+
+    for (const transition of transitions) {
+      const { from, event } = transition;
+
+      const froms = Array.isArray(from) ? from : [from];
+
+      for (const from of froms) {
+        if (!transitionsMap.has(from)) {
+          transitionsMap.set(from, new Map());
+        }
+
+        if (transitionsMap.get(from)?.has(event)) {
+          console.warn(`Duplicate transition from ${from} on event ${event}`);
+        }
+
+        transitionsMap.get(from)?.set(event, transition);
+      }
     }
   }
 

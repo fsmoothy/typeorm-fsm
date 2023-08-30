@@ -54,7 +54,6 @@ const createAlarmClock = (): Clock => {
     transitions: [
       t(ClockState.Clock, ClockEvent.ClickMode, ClockState.Alarm),
       t(ClockState.Alarm, ClockEvent.ClickMode, ClockState.Clock),
-      t(ClockState.Bell, ClockEvent.ClickMode, ClockState.Clock),
       t(ClockState.Bell, ClockEvent.ClickH, ClockState.Bell),
       t(ClockState.Bell, ClockEvent.ClickM, ClockState.Bell),
       t(ClockState.Bell, ClockEvent.ClickMode, ClockState.Bell),

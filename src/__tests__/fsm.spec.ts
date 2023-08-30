@@ -11,16 +11,20 @@ enum Event {
   resolve = 'resolve',
 }
 
+const createFetchStateMachine = () => {
+  return new StateMachine({
+    id: 'fetch fsm',
+    initial: State.idle,
+    transitions: [
+      t(State.idle, Event.fetch, State.pending),
+      t(State.pending, Event.resolve, State.idle),
+    ],
+  });
+};
+
 describe('StateMachine', () => {
   it('should set initial as current on initialize', () => {
-    const stateMachine = new StateMachine({
-      id: '1',
-      initial: State.idle,
-      transitions: [
-        t(State.idle, Event.fetch, State.pending),
-        t(State.pending, Event.resolve, State.idle),
-      ],
-    });
+    const stateMachine = createFetchStateMachine();
 
     expect(stateMachine.current).toBe(State.idle);
   });
@@ -39,13 +43,7 @@ describe('StateMachine', () => {
 
   describe('transition', () => {
     it('should change current state', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       await stateMachine.transition(Event.fetch);
       expect(stateMachine.current).toBe(State.pending);
@@ -83,13 +81,7 @@ describe('StateMachine', () => {
     });
 
     it('should be able to call event by event name', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       await stateMachine.fetch();
       expect(stateMachine.current).toBe(State.pending);
@@ -146,14 +138,7 @@ describe('StateMachine', () => {
     });
 
     it('should throw if transition is not possible', async () => {
-      const stateMachine = new StateMachine({
-        id: 'fetch fsm',
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       await expect(stateMachine.transition(Event.resolve)).rejects.toThrow(
         'Event resolve is not allowed in state idle of fetch fsm',
@@ -176,14 +161,7 @@ describe('StateMachine', () => {
     });
 
     it('should throw if transition is not defined', async () => {
-      const stateMachine = new StateMachine({
-        id: 'fetch fsm',
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       try {
         // @ts-expect-error - we don't have this event
@@ -198,13 +176,7 @@ describe('StateMachine', () => {
 
   describe('can', () => {
     it('should return true if transition is possible', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       expect(await stateMachine.canFetch()).toBe(true);
     });
@@ -224,25 +196,13 @@ describe('StateMachine', () => {
 
   describe('is', () => {
     it('should return true if current state is equal to passed', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       expect(stateMachine.is(State.idle)).toBe(true);
     });
 
     it('should be able to check state by state name', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [
-          t(State.idle, Event.fetch, State.pending),
-          t(State.pending, Event.resolve, State.idle),
-        ],
-      });
+      const stateMachine = createFetchStateMachine();
 
       expect(stateMachine.isIdle()).toBe(true);
       expect(stateMachine.isPending()).toBe(false);
@@ -264,10 +224,7 @@ describe('StateMachine', () => {
 
   describe('subscribe', () => {
     it('should be abele to subscribe to transition event', async () => {
-      const stateMachine = new StateMachine({
-        initial: State.idle,
-        transitions: [t(State.idle, Event.fetch, State.pending)],
-      });
+      const stateMachine = createFetchStateMachine();
 
       const handler = jest.fn();
 
