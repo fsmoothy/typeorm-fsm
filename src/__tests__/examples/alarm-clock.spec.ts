@@ -29,16 +29,20 @@ interface IClockContext {
 
 type Clock = IStateMachine<ClockState, ClockEvent, IClockContext>;
 
-const addMinutes = (type: 'time' | 'alarm') => (context: IClockContext) => {
+type ClockAddTimeCallback = (
+  type: 'time' | 'alarm',
+) => (context: IClockContext) => void;
+
+const addMinutes: ClockAddTimeCallback = (type) => (context) => {
   context[type].minutes = (context[type].minutes + 1) % 60;
 };
 
-const addHours = (type: 'time' | 'alarm') => (context: IClockContext) => {
+const addHours: ClockAddTimeCallback = (type) => (context) => {
   context[type].hours = (context[type].hours + 1) % 24;
 };
 
 const createAlarmClock = (): Clock => {
-  const clockState = new StateMachine({
+  return new StateMachine({
     initial: ClockState.Clock,
     ctx: {
       time: {
@@ -103,23 +107,19 @@ const createAlarmClock = (): Clock => {
         },
       },
     ],
-  });
-
-  clockState.on(ClockEvent.Tick, async function (context, minutes: number = 1) {
-    context.time.minutes = (context.time.minutes + minutes) % 60;
-    context.time.hours =
-      context.time.minutes === 0
-        ? (context.time.hours + 1) % 24
-        : context.time.hours;
-  });
-
-  clockState.on(ClockEvent.Tick, async function (this: Clock) {
-    if (await this.canActivateAlarm()) {
-      await this.activateAlarm();
-    }
-  });
-
-  return clockState;
+  })
+    .on(ClockEvent.Tick, async function (context, minutes: number = 1) {
+      context.time.minutes = (context.time.minutes + minutes) % 60;
+      context.time.hours =
+        context.time.minutes === 0
+          ? (context.time.hours + 1) % 24
+          : context.time.hours;
+    })
+    .on(ClockEvent.Tick, async function (this: Clock) {
+      if (await this.canActivateAlarm()) {
+        await this.activateAlarm();
+      }
+    });
 };
 
 describe('Alarm clock', () => {
