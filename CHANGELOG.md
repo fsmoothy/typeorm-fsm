@@ -1,3 +1,13 @@
+# [1.2.0](https://github.com/bondiano/typeorm-fsm/compare/v1.1.3...v1.2.0) (2023-08-31)
+
+
+### Features
+
+* add useful warning on duplicate transition ([d91168a](https://github.com/bondiano/typeorm-fsm/commit/d91168a6cc52cf016942d4405a16db4337699b7c))
+* allow chain subscription ([4d5b662](https://github.com/bondiano/typeorm-fsm/commit/4d5b662108bb3993e051d81dbb1beaccf5aff057))
+* make possible to pass from as array ([43f319f](https://github.com/bondiano/typeorm-fsm/commit/43f319ff41a781d38754202c675baa0ddb1983bc))
+* remove almost useless isFinal method ([86bc9a3](https://github.com/bondiano/typeorm-fsm/commit/86bc9a35549d6cf714b38b94aaa27c8dc72adaf7))
+
 ## [1.1.3](https://github.com/bondiano/typeorm-fsm/compare/v1.1.2...v1.1.3) (2023-08-30)
 
 
