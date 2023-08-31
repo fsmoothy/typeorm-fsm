@@ -160,6 +160,7 @@ function initializeStateMachine<
 /**
  * Mixin to extend your entity with state machine. Extends BaseEntity.
  * @param parameters - state machine parameters
+ * @param _BaseEntity - base entity class to extend from
  *
  * @example
  * import { StateMachineEntity, t } from 'typeorm-fsm';
@@ -197,11 +198,11 @@ export const StateMachineEntity = function <
       any
     >;
   },
+  Entity extends BaseEntity,
   const Columns extends keyof Parameters = keyof Parameters,
->(parameters: Parameters) {
-  class _StateMachineEntity extends BaseEntity {
-    id!: BaseStateMachineEntity['id'];
-  }
+>(parameters: Parameters, _BaseEntity?: { new (): Entity }) {
+  const _Entity = _BaseEntity ?? BaseEntity;
+  class _StateMachineEntity extends _Entity {}
 
   const metadataStorage = getMetadataArgsStorage();
 
@@ -294,12 +295,13 @@ export const StateMachineEntity = function <
   }
 
   return _StateMachineEntity as unknown as {
-    new (): BaseEntity & {
-      [Column in keyof Parameters]: IStateMachine<
-        ExtractState<Parameters, Column>,
-        ExtractEvent<Parameters, Column>,
-        ExtractContext<Parameters, Column>
-      >;
-    };
+    new (): BaseEntity &
+      Entity & {
+        [Column in keyof Parameters]: IStateMachine<
+          ExtractState<Parameters, Column>,
+          ExtractEvent<Parameters, Column>,
+          ExtractContext<Parameters, Column>
+        >;
+      };
   };
 };

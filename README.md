@@ -63,46 +63,57 @@ enum OrderItemEvent {
 The entity class must extend `StateMachineEntity` with defined initial state and transitions and have `id` property.
 
 ```typescript
-import { StateMachineEntity, t } from 'typeorm-fsm';
-
-@Entity()
-class Order extends StateMachineEntity({
-  itemsStatus: {
-    id: 'orderItemsStatus',
-    initial: OrderItemState.draft,
-    persistContext: true,
-    ctx: {
-      place: 'My warehouse',
-    },
-    transitions: [
-      t(OrderItemState.draft, OrderItemEvent.create, OrderItemState.assembly),
-      {
-        from: OrderItemState.assembly,
-        event: OrderItemEvent.assemble,
-        to: OrderItemState.warehouse,
-      },
-      {
-        from: OrderItemState.warehouse,
-        event: OrderItemEvent.transfer,
-        to: OrderItemState.warehouse,
-        guard(context: { place: string }, place) {
-          return context.place !== place;
-        },
-        onExit(context: { place: string }, place) {
-          context.place = place;
-        },
-      },
-      t([OrderItemState.assembly, OrderItemState.warehouse], OrderItemEvent.ship, OrderItemState.shipping),
-      t(
-        OrderItemState.shipping,
-        OrderItemEvent.deliver,
-        OrderItemState.delivered,
-      ),
-    ],
-  },
-}) {
+class BaseEntity extends TypeOrmBaseEntity {
   @PrimaryGeneratedColumn()
   id: string;
+}
+
+@Entity('order')
+class Order extends StateMachineEntity({
+    itemsStatus: {
+      id: 'orderItemsStatus',
+      initial: OrderItemState.draft,
+      persistContext: true,
+      ctx: {
+        place: 'My warehouse',
+      },
+      transitions: [
+        t(OrderItemState.draft, OrderItemEvent.create, OrderItemState.assembly),
+        t(
+          OrderItemState.assembly,
+          OrderItemEvent.assemble,
+          OrderItemState.warehouse,
+        ),
+        {
+          from: OrderItemState.warehouse,
+          event: OrderItemEvent.transfer,
+          to: OrderItemState.warehouse,
+          guard(context: IOrderItemContext, place: string) {
+            return context.place !== place;
+          },
+          onExit(context: IOrderItemContext, place: string) {
+            context.place = place;
+          },
+        },
+        t(
+          [OrderItemState.assembly, OrderItemState.warehouse],
+          OrderItemEvent.ship,
+          OrderItemState.shipping,
+        ),
+        t(
+          OrderItemState.shipping,
+          OrderItemEvent.deliver,
+          OrderItemState.delivered,
+        ),
+      ],
+    },
+  },
+  BaseEntity, // It's optional
+) {
+  @Column({
+    default: 0,
+  })
+  price: number;
 }
 ```
 

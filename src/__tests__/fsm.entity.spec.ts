@@ -1,4 +1,10 @@
-import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DataSource,
+  Entity,
+  PrimaryGeneratedColumn,
+  BaseEntity as TypeOrmBaseEntity,
+} from 'typeorm';
 
 import { t } from '../fsm';
 import { StateMachineEntity } from '../fsm.entity';
@@ -36,59 +42,64 @@ interface IOrderItemContext {
   place: string;
 }
 
-@Entity('order')
-class Order extends StateMachineEntity({
-  status: {
-    id: 'orderStatus',
-    initial: OrderState.draft,
-    transitions: [
-      t(OrderState.draft, OrderEvent.create, OrderState.pending),
-      t(OrderState.pending, OrderEvent.pay, OrderState.paid),
-      t(OrderState.paid, OrderEvent.ship, OrderState.shipped),
-      t(OrderState.shipped, OrderEvent.complete, OrderState.completed),
-    ],
-  },
-  itemsStatus: {
-    id: 'orderItemsStatus',
-    initial: OrderItemState.draft,
-    persistContext: true,
-    ctx: {
-      place: 'My warehouse',
-    },
-    transitions: [
-      t(OrderItemState.draft, OrderItemEvent.create, OrderItemState.assembly),
-      {
-        from: OrderItemState.assembly,
-        event: OrderItemEvent.assemble,
-        to: OrderItemState.warehouse,
-      },
-      {
-        from: OrderItemState.warehouse,
-        event: OrderItemEvent.transfer,
-        to: OrderItemState.warehouse,
-        guard(context: IOrderItemContext, place: string) {
-          return context.place !== place;
-        },
-        onExit(context: IOrderItemContext, place: string) {
-          context.place = place;
-        },
-      },
-      t(
-        [OrderItemState.assembly, OrderItemState.warehouse],
-        OrderItemEvent.ship,
-        OrderItemState.shipping,
-      ),
-      t(
-        OrderItemState.shipping,
-        OrderItemEvent.deliver,
-        OrderItemState.delivered,
-      ),
-    ],
-  },
-}) {
+class BaseEntity extends TypeOrmBaseEntity {
   @PrimaryGeneratedColumn()
   id: string;
+}
 
+@Entity('order')
+class Order extends StateMachineEntity(
+  {
+    status: {
+      id: 'orderStatus',
+      initial: OrderState.draft,
+      transitions: [
+        t(OrderState.draft, OrderEvent.create, OrderState.pending),
+        t(OrderState.pending, OrderEvent.pay, OrderState.paid),
+        t(OrderState.paid, OrderEvent.ship, OrderState.shipped),
+        t(OrderState.shipped, OrderEvent.complete, OrderState.completed),
+      ],
+    },
+    itemsStatus: {
+      id: 'orderItemsStatus',
+      initial: OrderItemState.draft,
+      persistContext: true,
+      ctx: {
+        place: 'My warehouse',
+      },
+      transitions: [
+        t(OrderItemState.draft, OrderItemEvent.create, OrderItemState.assembly),
+        t(
+          OrderItemState.assembly,
+          OrderItemEvent.assemble,
+          OrderItemState.warehouse,
+        ),
+        {
+          from: OrderItemState.warehouse,
+          event: OrderItemEvent.transfer,
+          to: OrderItemState.warehouse,
+          guard(context: IOrderItemContext, place: string) {
+            return context.place !== place;
+          },
+          onExit(context: IOrderItemContext, place: string) {
+            context.place = place;
+          },
+        },
+        t(
+          [OrderItemState.assembly, OrderItemState.warehouse],
+          OrderItemEvent.ship,
+          OrderItemState.shipping,
+        ),
+        t(
+          OrderItemState.shipping,
+          OrderItemEvent.deliver,
+          OrderItemState.delivered,
+        ),
+      ],
+    },
+  },
+  BaseEntity,
+) {
   @Column({
     default: 0,
   })
