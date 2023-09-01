@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/bondiano/typeorm-fsm/compare/v1.2.0...v1.3.0) (2023-09-01)
+
+
+### Features
+
+* allow to extend custom base entity ([2bce92a](https://github.com/bondiano/typeorm-fsm/commit/2bce92a9cee6022a143946033731c671dadb3a8f))
+* move fsm to corresponding property in instance ([658198e](https://github.com/bondiano/typeorm-fsm/commit/658198e9511b10a3a5bf3a42ef5359f5f962abff))
+
 # [1.2.0](https://github.com/bondiano/typeorm-fsm/compare/v1.1.3...v1.2.0) (2023-08-31)
 
 
