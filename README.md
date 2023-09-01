@@ -185,16 +185,16 @@ You can check if the transition is available using the `can` + `event name` meth
 const order = new Order();
 
 console.log(order.fsm.itemsStatus.canCreate()); // true
-await order.itemsStatus.create();
+await order.fsm.itemsStatus.create();
 console.log(order.fsm.itemsStatus.canCreate()); // false
-await order.itemsStatus.assemble();
+await order.fsm.itemsStatus.assemble();
 ```
 
 Arguments are passed to the `guard` function.
 
 ``` typescript
-await order.itemsStatus.transfer('Another warehouse');
-console.log(order.itemsStatus.canTransfer('Another warehouse')); // false
+await order.fsm.itemsStatus.transfer('Another warehouse');
+console.log(order.fsm.itemsStatus.canTransfer('Another warehouse')); // false
 ```
 
 Also `can(event: Event, ...args)` method is available.
@@ -209,11 +209,11 @@ const order = new Order();
 const subscriber = (state: OrderItemState) => {
   console.log(state);
 };
-order.itemsStatus.on(OrderItemEvent.create, subscriber);
+order.fsm.itemsStatus.on(OrderItemEvent.create, subscriber);
 
-await order.itemsStatus.create();
+await order.fsm.itemsStatus.create();
 
-order.itemsStatus.off(OrderItemEvent.create, subscriber);
+order.fsm.itemsStatus.off(OrderItemEvent.create, subscriber);
 ```
 
 ### Lifecycle
@@ -242,7 +242,7 @@ order.fsm.itemStatus.on(OrderItemEvent.create, function (this: Order) {
   console.log(this.id);
 });
 
-await order.itemsStatus.create();
+await order.fsm.itemsStatus.create();
 ```
 
 ### Error handling
