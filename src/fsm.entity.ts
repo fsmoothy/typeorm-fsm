@@ -72,17 +72,26 @@ type ExtractContext<
     : never
   : never;
 
-type BaseStateMachineEntity = BaseEntity & {
+type BaseStateMachineEntity<
+  State extends AllowedNames,
+  Event extends AllowedNames,
+  Context extends object,
+  Column extends string,
+> = BaseEntity & {
   id: number | string | Date | ObjectId;
 } & {
   [key: string]: unknown;
+} & {
+  fsm: {
+    [column in Column]: IStateMachine<State, Event, Context>;
+  };
 };
 
 const buildAfterLoadMethodName = (column: string) =>
   `__${column}FSM__afterLoad` as const;
 
 const buildContextColumnName = (column: string) =>
-  `${column}__context` as const;
+  `__${column}FSM__context` as const;
 
 function initializeStateMachine<
   const State extends AllowedNames,
@@ -90,7 +99,7 @@ function initializeStateMachine<
   const Column extends string,
   const Context extends object,
 >(
-  entity: BaseStateMachineEntity,
+  entity: BaseStateMachineEntity<State, Event, Context, Column>,
   column: Column,
   parameters: IStateMachineEntityColumnParameters<State, Event, Context>,
 ) {
@@ -109,9 +118,17 @@ function initializeStateMachine<
   parameters.transitions = transitions.map((transition) => {
     return {
       ...transition,
-      async onExit(context, ...arguments_) {
+      async onExit(
+        this: {
+          [key: string]: unknown;
+        },
+        context,
+        ...arguments_
+      ) {
         // @ts-expect-error - bind entity to transition
         await transition.onExit?.call(entity, context, ...arguments_);
+
+        this[column] = transition.to as State;
 
         if (persistContext) {
           entity[buildContextColumnName(column)] = JSON.stringify(context);
@@ -135,17 +152,17 @@ function initializeStateMachine<
     context = entity[buildContextColumnName(column)];
   }
 
-  entity[column] = new StateMachine({
+  entity.fsm[column] = new StateMachine({
     ...parameters,
     initial: entity[column] as State,
     ctx: context,
   });
 
-  // @ts-expect-error - bind entity to transition
-  entity[column].on = function (
+  // @ts-expect-error - this as _StateMachine is with private methods
+  entity.fsm[column].on = function (
     this: _StateMachine<AllowedNames, AllowedNames, object>,
     event: AllowedNames,
-    callback: Callback<object>,
+    callback: Callback<Context>,
   ) {
     if (!this._subscribers.has(event)) {
       this._subscribers.set(event, new Map());
@@ -166,16 +183,16 @@ function initializeStateMachine<
  * import { StateMachineEntity, t } from 'typeorm-fsm';
  *
  * enum OrderState {
- *  draft = 'draft',
- *  pending = 'pending',
- *  paid = 'paid',
- *  completed = 'completed',
- *  }
+ *   draft = 'draft',
+ *   pending = 'pending',
+ *   paid = 'paid',
+ *   completed = 'completed',
+ * }
  *
  * enum OrderEvent {
- * create = 'create',
- * pay = 'pay',
- * complete = 'complete',
+ *   create = 'create',
+ *   pay = 'pay',
+ *   complete = 'complete',
  * }
  *
  * @Entity()
@@ -202,7 +219,17 @@ export const StateMachineEntity = function <
   const Columns extends keyof Parameters = keyof Parameters,
 >(parameters: Parameters, _BaseEntity?: { new (): Entity }) {
   const _Entity = _BaseEntity ?? BaseEntity;
-  class _StateMachineEntity extends _Entity {}
+
+  class _StateMachineEntity extends _Entity {
+    constructor() {
+      super();
+      Object.defineProperty(this, 'fsm', {
+        value: {},
+        writable: true,
+        enumerable: false,
+      });
+    }
+  }
 
   const metadataStorage = getMetadataArgsStorage();
 
@@ -232,13 +259,6 @@ export const StateMachineEntity = function <
       [
         Column('text', {
           default: initial,
-          transformer: {
-            // we're transforming the value in after-load/after-insert hooks
-            from: (value) => value,
-            to: (value) => {
-              return value?.current ?? initial;
-            },
-          },
         }),
       ],
       _StateMachineEntity.prototype,
@@ -297,11 +317,15 @@ export const StateMachineEntity = function <
   return _StateMachineEntity as unknown as {
     new (): BaseEntity &
       Entity & {
-        [Column in keyof Parameters]: IStateMachine<
-          ExtractState<Parameters, Column>,
-          ExtractEvent<Parameters, Column>,
-          ExtractContext<Parameters, Column>
-        >;
+        fsm: {
+          [Column in keyof Parameters]: IStateMachine<
+            ExtractState<Parameters, Column>,
+            ExtractEvent<Parameters, Column>,
+            ExtractContext<Parameters, Column>
+          >;
+        };
+      } & {
+        [Column in keyof Parameters]: ExtractState<Parameters, Column>;
       };
   };
 };

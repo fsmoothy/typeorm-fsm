@@ -139,17 +139,19 @@ describe('StateMachineEntity', () => {
     await order.save();
 
     expect(order).toBeDefined();
-    expect(order.status.isDraft()).toBe(true);
-    expect(order.itemsStatus.isDraft()).toBe(true);
+    expect(order.fsm.status.isDraft()).toBe(true);
+    expect(order.fsm.itemsStatus.isDraft()).toBe(true);
+    expect(order.status).toBe(OrderState.draft);
+    expect(order.itemsStatus).toBe(OrderItemState.draft);
   });
 
   it('state should change after event', async () => {
     const order = new Order();
     await order.save();
 
-    await order.status.create();
+    await order.fsm.status.create();
 
-    expect(order.status.isPending()).toBe(true);
+    expect(order.fsm.status.isPending()).toBe(true);
 
     const orderFromDatabase = await dataSource.manager.findOneOrFail(Order, {
       where: {
@@ -157,7 +159,7 @@ describe('StateMachineEntity', () => {
       },
     });
 
-    expect(orderFromDatabase.status.current).toBe(OrderState.pending);
+    expect(orderFromDatabase.fsm.status.current).toBe(OrderState.pending);
   });
 
   it('should be able to pass correct contexts (this and ctx) to subscribers', async () => {
@@ -173,9 +175,9 @@ describe('StateMachineEntity', () => {
       handlerContext = this;
     });
 
-    order.itemsStatus.on(OrderItemEvent.create, handler);
+    order.fsm.itemsStatus.on(OrderItemEvent.create, handler);
 
-    await order.itemsStatus.create();
+    await order.fsm.itemsStatus.create();
 
     expect(handlerContext).toBeInstanceOf(Order);
     expect(handler).toBeCalledTimes(1);
@@ -186,7 +188,7 @@ describe('StateMachineEntity', () => {
     const order = new Order();
     await order.save();
 
-    await expect(order.status.pay()).rejects.toThrowError();
+    await expect(order.fsm.status.pay()).rejects.toThrowError();
   });
 
   it('should throw error when transition guard is not passed', async () => {
@@ -194,13 +196,13 @@ describe('StateMachineEntity', () => {
 
     await order.save();
 
-    await order.itemsStatus.create();
-    await order.itemsStatus.assemble();
+    await order.fsm.itemsStatus.create();
+    await order.fsm.itemsStatus.assemble();
 
-    await order.itemsStatus.transfer('John warehouse');
+    await order.fsm.itemsStatus.transfer('John warehouse');
 
     await expect(
-      order.itemsStatus.transfer('John warehouse'),
+      order.fsm.itemsStatus.transfer('John warehouse'),
     ).rejects.toThrowError();
   });
 });

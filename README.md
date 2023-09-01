@@ -60,7 +60,7 @@ enum OrderItemEvent {
 
 ### Entity
 
-The entity class must extend `StateMachineEntity` with defined initial state and transitions and have `id` property.
+To create an entity class, it must extend `StateMachineEntity` and have defined initial state and transitions. Additionally, you can combine `StateMachineEntity` with your own `BaseEntity`, which should be extended from TypeORM's base entity.
 
 ```typescript
 class BaseEntity extends TypeOrmBaseEntity {
@@ -151,10 +151,10 @@ To make a transition, we need to call the `transition` method of the entity or u
 
 ```typescript
 const order = new Order();
-await order.itemsStatus.create();
-await order.itemsStatus.assemble();
-await order.itemsStatus.transfer('Another warehouse');
-await order.itemsStatus.ship();
+await order.fsm.itemsStatus.create();
+await order.fsm.itemsStatus.assemble();
+await order.fsm.itemsStatus.transfer('Another warehouse');
+await order.fsm.itemsStatus.ship();
 ```
 
 We're passing the `place` argument to the `transfer` method. It will be passed to the `guard` and `onExit` functions.
@@ -165,14 +165,14 @@ You can get the current state of the state machine using the `current` property.
 
 ```typescript
 const order = new Order();
-console.log(order.itemsStatus.current); // draft
+console.log(order.fsm.itemsStatus.current); // draft
 ```
 
 Also you can use `is` + `state name` method to check the current state.
 
 ```typescript
 const order = new Order();
-console.log(order.itemsStatus.isDraft()); // true
+console.log(order.fsm.itemsStatus.isDraft()); // true
 ```
 
 Also `is(state: State)` method is available.
@@ -184,9 +184,9 @@ You can check if the transition is available using the `can` + `event name` meth
 ```typescript
 const order = new Order();
 
-console.log(order.itemsStatus.canCreate()); // true
+console.log(order.fsm.itemsStatus.canCreate()); // true
 await order.itemsStatus.create();
-console.log(order.itemsStatus.canCreate()); // false
+console.log(order.fsm.itemsStatus.canCreate()); // false
 await order.itemsStatus.assemble();
 ```
 
@@ -235,10 +235,10 @@ The entity instance will be bound to the lifecycle methods. You can access the e
 ```typescript
 const order = new Order();
 
-order.itemsStatus.onEnter(function (this: Order) {
+order.fsm.itemsStatus.onEnter(function (this: Order) {
   console.log(this.id);
 });
-order.itemStatus.on(OrderItemEvent.create, function (this: Order) {
+order.fsm.itemStatus.on(OrderItemEvent.create, function (this: Order) {
   console.log(this.id);
 });
 
@@ -253,7 +253,7 @@ Library throws `StateMachineError` if transition is not available. It can be cau
 import { isStateMachineError } from 'typeorm-fsm';
 
 try {
-  await order.itemsStatus.create();
+  await order.fsm.itemsStatus.create();
 } catch (error) {
   if (isStateMachineError(error)) {
     console.log(error.message);
