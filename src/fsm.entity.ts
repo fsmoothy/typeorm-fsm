@@ -118,17 +118,11 @@ function initializeStateMachine<
   parameters.transitions = transitions.map((transition) => {
     return {
       ...transition,
-      async onExit(
-        this: {
-          [key: string]: unknown;
-        },
-        context,
-        ...arguments_
-      ) {
+      async onExit(context, ...arguments_) {
         // @ts-expect-error - bind entity to transition
         await transition.onExit?.call(entity, context, ...arguments_);
 
-        this[column] = transition.to as State;
+        entity[column] = transition.to as State;
 
         if (persistContext) {
           entity[buildContextColumnName(column)] = JSON.stringify(context);
