@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.3.0...v1.4.0) (2023-09-03)
+
+
+### Bug Fixes
+
+* use entity instad of context ([4adf25d](https://github.com/fsmoothy/typeorm-fsm/commit/4adf25d40730d1ad0b781305676ff6c46ad1b5d5))
+
+
+### Features
+
+* migrate to fsmoothy package ([ec70a0f](https://github.com/fsmoothy/typeorm-fsm/commit/ec70a0fd0ea2cfec68ec54f239f267e79dffb5d0))
+
 # [1.3.0](https://github.com/bondiano/typeorm-fsm/compare/v1.2.0...v1.3.0) (2023-09-01)
 
 
