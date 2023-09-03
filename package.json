@@ -68,5 +68,8 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "fsmoothy": "^1.0.0"
   }
 }

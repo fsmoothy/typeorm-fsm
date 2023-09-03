@@ -1,3 +1,4 @@
+import { t } from 'fsmoothy';
 import {
   Column,
   DataSource,
@@ -6,7 +7,6 @@ import {
   BaseEntity as TypeOrmBaseEntity,
 } from 'typeorm';
 
-import { t } from '../fsm';
 import { StateMachineEntity } from '../fsm.entity';
 
 enum OrderState {

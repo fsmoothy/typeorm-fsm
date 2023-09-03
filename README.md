@@ -2,7 +2,7 @@
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![Maintainability](https://api.codeclimate.com/v1/badges/a24c3d831b2fe310c268/maintainability)](https://codeclimate.com/github/fsmoothy/typeorm-fsm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/a24c3d831b2fe310c268/test_coverage)](https://codeclimate.com/github/fsmoothy/typeorm-fsm/test_coverage)
 
-`typeorm-fsm` is a strongly typed state machine designed for TypeORM entities. It allows you to define and manage state transitions in a declarative manner.
+`typeorm-fsm` is a strongly typed state machine designed for TypeORM entities. It allows you to define and manage state transitions in a declarative manner. The library is using [fsmoothy](https://github.com/fsmoothy/fsmoothy) package to provide the best DX.
 
 ## Index
 
@@ -278,7 +278,5 @@ Take a look at the [CHANGELOG](CHANGELOG.md) for details about recent changes to
 ## Thanks
 
 This project was inspired by [aasm](https://github.com/aasm/aasm) and [typeorm-fsm](https://github.com/eram/typescript-fsm).
-
-If you are specifically looking for a state machine, I recommend checking out [xstate](https://github.com/statelyai/xstate) first. It is a fantastic library with more features.
 
 And thank you for reading this far. I hope you find this library useful.

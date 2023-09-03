@@ -1,19 +1,19 @@
 import {
+  IStateMachineParameters,
+  StateMachine,
+  IStateMachine,
+  ITransition,
+} from 'fsmoothy';
+import { _StateMachine } from 'fsmoothy/fsm';
+import { StateMachineError } from 'fsmoothy/fsm.error';
+import { AllowedNames } from 'fsmoothy/types';
+import {
   BaseEntity,
   Callback,
   Column,
   getMetadataArgsStorage,
   ObjectId,
 } from 'typeorm';
-
-import {
-  IStateMachineParameters,
-  StateMachine,
-  IStateMachine,
-  _StateMachine,
-} from './fsm';
-import { StateMachineError } from './fsm.error';
-import { AllowedNames, ITransition } from './types';
 
 export interface IStateMachineEntityColumnParameters<
   State extends AllowedNames,
