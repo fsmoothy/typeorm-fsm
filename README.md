@@ -1,6 +1,6 @@
 # TypeORM State Machine
 
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![Maintainability](https://api.codeclimate.com/v1/badges/6c9a80f3521e67d149e0/maintainability)](https://codeclimate.com/github/bondiano/typeorm-fsm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/6c9a80f3521e67d149e0/test_coverage)](https://codeclimate.com/github/bondiano/typeorm-fsm/test_coverage)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![Maintainability](https://api.codeclimate.com/v1/badges/a24c3d831b2fe310c268/maintainability)](https://codeclimate.com/github/fsmoothy/typeorm-fsm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/a24c3d831b2fe310c268/test_coverage)](https://codeclimate.com/github/fsmoothy/typeorm-fsm/test_coverage)
 
 `typeorm-fsm` is a strongly typed state machine designed for TypeORM entities. It allows you to define and manage state transitions in a declarative manner.
 

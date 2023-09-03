@@ -6,7 +6,7 @@
   "description": "Strong typed state machine for your TypeORM Entities",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bondiano/typeorm-fsm"
+    "url": "https://github.com/fsmoothy/typeorm-fsm"
   },
   "main": "./index.js",
   "types": "./index.d.ts",
