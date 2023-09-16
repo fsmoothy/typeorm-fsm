@@ -49,12 +49,17 @@ enum OrderItemState {
   shipping = 'shipping',
   delivered = 'delivered',
 }
+
 enum OrderItemEvent {
   create = 'create',
   assemble = 'assemble',
   transfer = 'transfer',
   ship = 'ship',
   deliver = 'deliver',
+}
+
+interface IOrderItemContext {
+  place: string;
 }
 ```
 

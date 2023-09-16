@@ -193,7 +193,6 @@ describe('StateMachineEntity', () => {
 
   it('should throw error when transition guard is not passed', async () => {
     const order = new Order();
-
     await order.save();
 
     await order.fsm.itemsStatus.create();
