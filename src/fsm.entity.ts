@@ -146,6 +146,10 @@ function initializeStateMachine<
     context = entity[buildContextColumnName(column)];
   }
 
+  if (typeof context !== 'function') {
+    context = () => context;
+  }
+
   entity.fsm[column] = new StateMachine({
     ...parameters,
     initial: entity[column] as State,
@@ -158,12 +162,14 @@ function initializeStateMachine<
     event: AllowedNames,
     callback: Callback<Context>,
   ) {
+    // @ts-expect-error - bind entity to transition
     if (!this._subscribers.has(event)) {
+      // @ts-expect-error - bind entity to transition
       this._subscribers.set(event, new Map());
     }
 
-    const callbacks = this._subscribers.get(event);
     // @ts-expect-error - bind entity to transition
+    const callbacks = this._subscribers.get(event);
     callbacks?.set(callback, callback.bind(entity));
   };
 }

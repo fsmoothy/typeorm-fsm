@@ -64,8 +64,10 @@ class Order extends StateMachineEntity(
       id: 'orderItemsStatus',
       initial: OrderItemState.draft,
       persistContext: true,
-      ctx: {
-        place: 'My warehouse',
+      ctx() {
+        return {
+          place: 'My warehouse',
+        };
       },
       transitions: [
         t(OrderItemState.draft, OrderItemEvent.create, OrderItemState.assembly),
