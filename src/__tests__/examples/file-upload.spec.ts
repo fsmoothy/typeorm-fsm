@@ -1,12 +1,7 @@
+import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import {
-  Column,
-  DataSource,
-  Entity,
-  PrimaryGeneratedColumn,
-  BaseEntity as TypeOrmBaseEntity,
-} from 'typeorm';
-import { StateMachineEntity,t } from '../..';
+
+import { StateMachineEntity, t, state } from '../..';
 
 /**
  * First, user submits a file to the server.
@@ -28,20 +23,24 @@ enum FileEvent {
 
 @Entity('file')
 class File extends StateMachineEntity({
-  status: {
+  status: state({
     id: 'fileStatus',
     initial: FileState.pending,
     transitions: [
       t(FileState.pending, FileEvent.start, FileState.uploading),
-      t(FileState.uploading, FileEvent.finish, FileState.completed,{
-        async onEnter(this: File, _ctx, url: string | null){
+      t(FileState.uploading, FileEvent.finish, FileState.completed, {
+        async onEnter(this: File, _context, url: string | null) {
           this.url = url;
-        }
+        },
       }),
-      t([FileState.pending, FileState.uploading], FileEvent.fail, FileState.failed),
+      t(
+        [FileState.pending, FileState.uploading],
+        FileEvent.fail,
+        FileState.failed,
+      ),
     ],
-  },
-}){
+  }),
+}) {
   @PrimaryGeneratedColumn()
   id: string;
 
@@ -82,7 +81,7 @@ describe('File upload', () => {
         id,
       },
     });
-  }
+  };
 
   it('should change state', async () => {
     const file = new File();

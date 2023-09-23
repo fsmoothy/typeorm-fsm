@@ -1,5 +1,3 @@
-import { describe, expect, it, vi, afterEach, beforeAll, afterAll } from 'vitest';
-
 import {
   Column,
   DataSource,
@@ -7,8 +5,17 @@ import {
   PrimaryGeneratedColumn,
   BaseEntity as TypeOrmBaseEntity,
 } from 'typeorm';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 
-import { StateMachineEntity, t } from '../';
+import { StateMachineEntity, state, t } from '../';
 
 enum OrderState {
   draft = 'draft',
@@ -51,7 +58,7 @@ class BaseEntity extends TypeOrmBaseEntity {
 @Entity('order')
 class Order extends StateMachineEntity(
   {
-    status: {
+    status: state({
       id: 'orderStatus',
       initial: OrderState.draft,
       transitions: [
@@ -60,8 +67,8 @@ class Order extends StateMachineEntity(
         t(OrderState.paid, OrderEvent.ship, OrderState.shipped),
         t(OrderState.shipped, OrderEvent.complete, OrderState.completed),
       ],
-    },
-    itemsStatus: {
+    }),
+    itemsStatus: state({
       id: 'orderItemsStatus',
       initial: OrderItemState.draft,
       persistContext: true,
@@ -99,7 +106,7 @@ class Order extends StateMachineEntity(
           OrderItemState.delivered,
         ),
       ],
-    },
+    }),
   },
   BaseEntity,
 ) {

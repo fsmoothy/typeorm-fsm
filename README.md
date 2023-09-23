@@ -75,7 +75,7 @@ class BaseEntity extends TypeOrmBaseEntity {
 
 @Entity('order')
 class Order extends StateMachineEntity({
-    itemsStatus: {
+    itemsStatus: state({
       id: 'orderItemsStatus',
       initial: OrderItemState.draft,
       persistContext: true,
@@ -111,7 +111,7 @@ class Order extends StateMachineEntity({
           OrderItemState.delivered,
         ),
       ],
-    },
+    }),
   },
   BaseEntity, // It's optional
 ) {

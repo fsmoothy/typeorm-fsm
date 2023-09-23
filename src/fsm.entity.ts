@@ -31,8 +31,8 @@ type ExtractState<
   Column extends keyof Parameters,
 > = Parameters[Column] extends IStateMachineEntityColumnParameters<
   infer State,
-  AllowedNames,
-  object
+  any,
+  any
 >
   ? State extends AllowedNames
     ? State
@@ -43,9 +43,9 @@ type ExtractEvent<
   Parameters extends object,
   Column extends keyof Parameters,
 > = Parameters[Column] extends IStateMachineEntityColumnParameters<
-  AllowedNames,
+  any,
   infer Event,
-  object
+  any
 >
   ? Event extends AllowedNames
     ? Event
@@ -56,8 +56,8 @@ type ExtractContext<
   Parameters extends object,
   Column extends keyof Parameters,
 > = Parameters[Column] extends IStateMachineEntityColumnParameters<
-  AllowedNames,
-  AllowedNames,
+  any,
+  any,
   infer Context
 >
   ? Context extends object
@@ -183,12 +183,8 @@ function initializeStateMachine<
  * }}) {}
  */
 export const StateMachineEntity = function <
-  Parameters extends {
-    [Column in Columns]: IStateMachineEntityColumnParameters<
-      AllowedNames,
-      AllowedNames,
-      any
-    >;
+  const Parameters extends {
+    [Column in Columns]: IStateMachineEntityColumnParameters<any, any, any>;
   },
   Entity extends BaseEntity,
   const Columns extends keyof Parameters = keyof Parameters,
@@ -292,6 +288,7 @@ export const StateMachineEntity = function <
   return _StateMachineEntity as unknown as {
     new (): BaseEntity &
       Entity & {
+        params: Parameters;
         fsm: {
           [Column in keyof Parameters]: IStateMachine<
             ExtractState<Parameters, Column>,
