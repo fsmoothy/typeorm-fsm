@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "types": [
-      "jest",
       "node"
     ],
     "module": "commonjs",
-    "target": "ES2022",
+    "target": "es2022",
     "outDir": "./dist",
     "baseUrl": "./",
     "sourceMap": true,
@@ -20,6 +19,7 @@
     "importHelpers": true,
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "./vitest.config.ts"
   ]
 }

@@ -1,3 +1,5 @@
+import { describe, expect, it, vi, afterEach, beforeAll, afterAll } from 'vitest';
+
 import { t } from 'fsmoothy';
 import {
   Column,
@@ -169,7 +171,7 @@ describe('StateMachineEntity', () => {
     await order.save();
 
     let handlerContext!: Order;
-    const handler = jest.fn().mockImplementation(function (
+    const handler = vi.fn().mockImplementation(function (
       this: Order,
       _context: IOrderItemContext,
     ) {
