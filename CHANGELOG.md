@@ -1,3 +1,13 @@
+# [1.5.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.4.0...v1.5.0) (2023-09-23)
+
+
+### Features
+
+* add state helper ([507432a](https://github.com/fsmoothy/typeorm-fsm/commit/507432a85582837b206890e511fb01834c3ba2e4))
+* migrate to new bind method ([d485c56](https://github.com/fsmoothy/typeorm-fsm/commit/d485c56d3bd8de977f9e3394b6a23eb9c6ef7325))
+* update fsmoothy core package ([b6958a1](https://github.com/fsmoothy/typeorm-fsm/commit/b6958a1fd47312b66667fd952f64904c9d9ec7cd))
+* update fsmoothy version ([890cd2f](https://github.com/fsmoothy/typeorm-fsm/commit/890cd2f1194093968c89b1471cfcf56d3c5f8fba))
+
 # [1.4.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.3.0...v1.4.0) (2023-09-03)
 
 
