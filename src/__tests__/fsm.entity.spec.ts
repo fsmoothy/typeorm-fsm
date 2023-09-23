@@ -207,4 +207,19 @@ describe('StateMachineEntity', () => {
       order.fsm.itemsStatus.transfer('John warehouse'),
     ).rejects.toThrowError();
   });
+
+  it('should work with repositories', async () => {
+    const orderRepository = dataSource.manager.getRepository(Order);
+    const order = orderRepository.create();
+    await orderRepository.save(order);
+
+    await order.fsm.status.create();
+    const orderFromDatabase = await orderRepository.findOneOrFail({
+      where: {
+        id: order.id,
+      },
+    });
+
+    expect(orderFromDatabase.fsm.status.current).toBe(OrderState.pending);
+  });
 });
