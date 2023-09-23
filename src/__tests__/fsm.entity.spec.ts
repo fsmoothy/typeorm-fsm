@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, afterEach, beforeAll, afterAll } from 'vitest';
 
-import { t } from 'fsmoothy';
 import {
   Column,
   DataSource,
@@ -9,7 +8,7 @@ import {
   BaseEntity as TypeOrmBaseEntity,
 } from 'typeorm';
 
-import { StateMachineEntity } from '../fsm.entity';
+import { StateMachineEntity, t } from '../';
 
 enum OrderState {
   draft = 'draft',
