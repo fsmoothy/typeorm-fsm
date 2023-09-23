@@ -4,16 +4,9 @@ import {
   IStateMachine,
   ITransition,
 } from 'fsmoothy';
-import { _StateMachine } from 'fsmoothy/fsm';
 import { StateMachineError } from 'fsmoothy/fsm.error';
 import { AllowedNames } from 'fsmoothy/types';
-import {
-  BaseEntity,
-  Callback,
-  Column,
-  getMetadataArgsStorage,
-  ObjectId,
-} from 'typeorm';
+import { BaseEntity, Column, getMetadataArgsStorage, ObjectId } from 'typeorm';
 
 export interface IStateMachineEntityColumnParameters<
   State extends AllowedNames,
@@ -119,8 +112,7 @@ function initializeStateMachine<
     return {
       ...transition,
       async onExit(context, ...arguments_) {
-        // @ts-expect-error - bind entity to transition
-        await transition.onExit?.call(entity, context, ...arguments_);
+        await transition.onExit?.(context, ...arguments_);
 
         entity[column] = transition.to as State;
 
@@ -132,8 +124,6 @@ function initializeStateMachine<
           await entity.save();
         }
       },
-      guard: transition.guard?.bind(entity),
-      onEnter: transition.onEnter?.bind(entity),
     };
   });
 
@@ -156,22 +146,7 @@ function initializeStateMachine<
     ctx: context,
   });
 
-  // @ts-expect-error - this as _StateMachine is with private methods
-  entity.fsm[column].on = function (
-    this: _StateMachine<AllowedNames, AllowedNames, object>,
-    event: AllowedNames,
-    callback: Callback<Context>,
-  ) {
-    // @ts-expect-error - bind entity to transition
-    if (!this._subscribers.has(event)) {
-      // @ts-expect-error - bind entity to transition
-      this._subscribers.set(event, new Map());
-    }
-
-    // @ts-expect-error - bind entity to transition
-    const callbacks = this._subscribers.get(event);
-    callbacks?.set(callback, callback.bind(entity));
-  };
+  entity.fsm[column].bind(entity);
 }
 
 /**
