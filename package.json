@@ -72,6 +72,6 @@
     }
   },
   "dependencies": {
-    "fsmoothy": "1.4.1"
+    "fsmoothy": "1.5.0"
   }
 }
