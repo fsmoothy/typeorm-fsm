@@ -7,5 +7,8 @@ export const state = <
   const Event extends AllowedNames,
   const Context extends object,
 >(
-  parameters: IStateMachineEntityColumnParameters<State, Event, Context>,
+  parameters: Omit<
+    IStateMachineEntityColumnParameters<State, Event, Context>,
+    'states'
+  >,
 ) => parameters;

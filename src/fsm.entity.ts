@@ -12,12 +12,15 @@ export interface IStateMachineEntityColumnParameters<
   State extends AllowedNames,
   Event extends AllowedNames,
   Context extends object,
-> extends IStateMachineParameters<
-    State,
-    Event,
-    Context,
-    ITransition<State, Event, any>,
-    [ITransition<State, Event, any>, ...Array<ITransition<State, Event, any>>]
+> extends Omit<
+    IStateMachineParameters<
+      State,
+      Event,
+      Context,
+      ITransition<State, Event, any>,
+      [ITransition<State, Event, any>, ...Array<ITransition<State, Event, any>>]
+    >,
+    'states'
   > {
   persistContext?: boolean;
   /**
@@ -101,7 +104,13 @@ function initializeStateMachine<
     saveAfterTransition = true,
     transitions,
     ctx,
+    // @ts-expect-error we don't allow state
+    states,
   } = parameters;
+
+  if (states) {
+    throw new StateMachineError('Nested states are not allowed');
+  }
 
   if (!Array.isArray(transitions) || transitions.length === 0) {
     throw new StateMachineError('Transitions are not defined');
