@@ -124,7 +124,7 @@ class Order extends StateMachineEntity({
 
 ### StateMachineEntity
 
-Let's take a look at the `StateMachineEntity` function. It accepts an object with the following properties:
+Let's take a look at the `StateMachineEntity` mixin. It accepts an object with the following properties:
 
 - `id` - a unique identifier for the state machine (used for debugging purposes)
 - `initial` - the initial state of the state machine
@@ -132,16 +132,34 @@ Let's take a look at the `StateMachineEntity` function. It accepts an object wit
 - `saveAfterTransition` - if `true`, the state machine will be saved to the database after each transition. Default value is `true`
 - `ctx` - initial context of the state machine
 - `transitions` - an array of transitions
+- `subscribers` - an object with subscribers array for events
+
+It also support extend your own `BaseEntity` class by passing it as a second argument.
 
 ### Transitions
 
 The most common way to define a transition is by using the `t` function, which requires three arguments (guard is optional).
 
 ```typescript
-t(from: State, event: Event, to: State, guard?: (context: Context) => boolean)
+t(from: State | State[], event: Event, to: State, guard?: (context: Context) => boolean);
 ```
 
-However, we may need to define more complex transitions. In such cases, we can use an object with the following attributes:
+We also able to pass optional `onEnter` and `onExit` functions to the transition as options:
+
+```typescript
+t(
+  from: State | State[],
+  event: Event,
+  to: State,
+  options?: {
+    guard?: (context: Context) => boolean;
+    onEnter?: (context: Context) => void;
+    onExit?: (context: Context) => void;
+  },
+);
+```
+
+In such cases, we're using next options:
 
 - `from` - represents the state from which the transition is permitted
 - `event` - denotes the event that triggers the transition
@@ -149,6 +167,7 @@ However, we may need to define more complex transitions. In such cases, we can u
 - `guard` - a function that verifies if the transition is permissible
 - `onEnter` - a function that executes when the transition is triggered
 - `onExit` - a function that executes when the transition is completed
+- `onLeave` - a function that executes when the next transition is triggered (before `onEnter`)
 
 ### Make transition
 
@@ -163,6 +182,28 @@ await order.fsm.itemsStatus.ship();
 ```
 
 We're passing the `place` argument to the `transfer` method. It will be passed to the `guard` and `onExit` functions.
+
+### Dynamic add transitions
+
+We can add transition dynamically using the `addTransition` method.
+
+```typescript
+orderItemFSM.addTransition([
+  t(
+    OrderItemState.shipping,
+    OrderItemEvent.transfer,
+    OrderItemState.shipping,
+    {
+      guard(context: IOrderItemContext, place: string) {
+        return context.place !== place;
+      },
+      onExit(context: IOrderItemContext, place: string) {
+        context.place = place;
+      },
+    },
+  ),
+]);
+```
 
 ### Current state
 
@@ -227,6 +268,7 @@ The state machine has the following lifecycle methods in the order of execution:
 
 ```
 - guard
+- onLeave (from previous transition)
 - onEnter
 - transition
 - subscribers
@@ -249,6 +291,15 @@ order.fsm.itemStatus.on(OrderItemEvent.create, function (this: Order) {
 
 await order.fsm.itemsStatus.create();
 ```
+
+You also able to use `bind` method to bind your own `this` keyword to the function.
+
+```typescript
+order.fsm.itemsStatus.on(function () {
+  console.log(this.current);
+}.bind({ current: 'test' }));
+```
+
 
 ### Error handling
 
