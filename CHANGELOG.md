@@ -1,3 +1,12 @@
+# [1.6.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.5.0...v1.6.0) (2023-09-28)
+
+
+### Features
+
+* don't allow nested state ([f350c20](https://github.com/fsmoothy/typeorm-fsm/commit/f350c209a97c83e15fdd378c37db0cccb984b108))
+* update fsmoothy version ([af1919b](https://github.com/fsmoothy/typeorm-fsm/commit/af1919b81ba787f3d64ba57142505312f2087c6a))
+* update fsmoothy version ([fcbcfb1](https://github.com/fsmoothy/typeorm-fsm/commit/fcbcfb11bc77a477d4d19eecfcd27da6500de43f))
+
 # [1.5.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.4.0...v1.5.0) (2023-09-23)
 
 
