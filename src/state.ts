@@ -5,10 +5,7 @@ import { IStateMachineEntityColumnParameters } from './fsm.entity';
 export const state = <
   const State extends AllowedNames,
   const Event extends AllowedNames,
-  const Context extends object,
+  const Context extends object = object,
 >(
-  parameters: Omit<
-    IStateMachineEntityColumnParameters<State, Event, Context>,
-    'states'
-  >,
+  parameters: IStateMachineEntityColumnParameters<State, Event, Context>,
 ) => parameters;

@@ -2,7 +2,7 @@ export {
   StateMachine,
   t,
   IStateMachine,
-  ITransition,
+  Transition,
   isStateMachineError,
 } from 'fsmoothy';
 export { StateMachineEntity } from './fsm.entity';

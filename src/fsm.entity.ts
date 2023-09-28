@@ -1,8 +1,8 @@
 import {
-  IStateMachineParameters,
+  StateMachineParameters,
   StateMachine,
   IStateMachine,
-  ITransition,
+  Transition,
 } from 'fsmoothy';
 import { StateMachineError } from 'fsmoothy/fsm.error';
 import { AllowedNames } from 'fsmoothy/types';
@@ -13,12 +13,12 @@ export interface IStateMachineEntityColumnParameters<
   Event extends AllowedNames,
   Context extends object,
 > extends Omit<
-    IStateMachineParameters<
+    StateMachineParameters<
       State,
       Event,
       Context,
-      ITransition<State, Event, any>,
-      [ITransition<State, Event, any>, ...Array<ITransition<State, Event, any>>]
+      Transition<State, Event, any>,
+      [Transition<State, Event, any>, ...Array<Transition<State, Event, any>>]
     >,
     'states'
   > {
@@ -104,13 +104,7 @@ function initializeStateMachine<
     saveAfterTransition = true,
     transitions,
     ctx,
-    // @ts-expect-error we don't allow state
-    states,
   } = parameters;
-
-  if (states) {
-    throw new StateMachineError('Nested states are not allowed');
-  }
 
   if (!Array.isArray(transitions) || transitions.length === 0) {
     throw new StateMachineError('Transitions are not defined');
@@ -120,10 +114,10 @@ function initializeStateMachine<
   parameters.transitions = transitions.map((transition) => {
     return {
       ...transition,
-      async onExit(context, ...arguments_) {
-        await transition.onExit?.(context, ...arguments_);
-
+      async onExit(context: object, ...arguments_: Array<unknown>) {
         entity[column] = transition.to as State;
+
+        await transition.onExit?.call?.(this, context, ...arguments_);
 
         if (persistContext) {
           entity[buildContextColumnName(column)] = JSON.stringify(context);

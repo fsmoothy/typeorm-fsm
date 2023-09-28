@@ -29,6 +29,11 @@ class File extends StateMachineEntity({
     transitions: [
       t(FileState.pending, FileEvent.start, FileState.uploading),
       t(FileState.uploading, FileEvent.finish, FileState.completed, {
+        async guard(this: File, _context, url: string) {
+          const hasTheSameUrl = (this.url !== url) as boolean;
+
+          return hasTheSameUrl;
+        },
         async onEnter(this: File, _context, url: string | null) {
           this.url = url;
         },

@@ -21,7 +21,6 @@ module.exports = {
   extends: [
     'plugin:node/recommended',
     'plugin:prettier/recommended',
-    'plugin:sonarjs/recommended',
     'plugin:unicorn/recommended',
     'plugin:import/recommended',
   ],
@@ -120,17 +119,6 @@ module.exports = {
             vars: 'local',
             ignoreRestSiblings: false,
             argsIgnorePattern: '^_',
-          },
-        ],
-        '@typescript-eslint/naming-convention': [
-          ERROR,
-          {
-            selector: 'interface',
-            format: ['PascalCase'],
-            custom: {
-              regex: '^I[A-Z]',
-              match: true,
-            },
           },
         ],
         '@typescript-eslint/ban-ts-comment': [
