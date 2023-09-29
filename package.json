@@ -1,6 +1,6 @@
 {
   "name": "typeorm-fsm",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "author": "Vassiliy Kuzenkov (bondiano)",
   "license": "MIT",
   "description": "Strong typed state machine for your TypeORM Entities",

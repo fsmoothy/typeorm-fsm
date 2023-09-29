@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/fsmoothy/typeorm-fsm/compare/v1.6.0...v1.6.1) (2023-09-29)
+
+
+### Bug Fixes
+
+* add missed reexports ([b8a0508](https://github.com/fsmoothy/typeorm-fsm/commit/b8a050815b9ccbe100d7da2137117503a961f341))
+
 # [1.6.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.5.0...v1.6.0) (2023-09-28)
 
 
