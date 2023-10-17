@@ -1,3 +1,11 @@
+# [1.7.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.6.1...v1.7.0) (2023-10-17)
+
+
+### Features
+
+* update data from context usage ([bf550d5](https://github.com/fsmoothy/typeorm-fsm/commit/bf550d518f2f0693cfa7bd9894cc3ae41dfe549a))
+* upgrade to new fsmoothy version ([2147e4a](https://github.com/fsmoothy/typeorm-fsm/commit/2147e4abc0a3beca7436335249515e71f0064ba2))
+
 ## [1.6.1](https://github.com/fsmoothy/typeorm-fsm/compare/v1.6.0...v1.6.1) (2023-09-29)
 
 
