@@ -58,9 +58,9 @@ enum OrderItemEvent {
   deliver = 'deliver',
 }
 
-interface IOrderItemContext {
+interface IOrderItemContext = FSMContext<{
   place: string;
-}
+}>
 ```
 
 ### Entity
@@ -74,14 +74,15 @@ class BaseEntity extends TypeOrmBaseEntity {
 }
 
 @Entity('order')
-class Order extends StateMachineEntity({
+class Order extends StateMachineEntity(
+  {
     itemsStatus: state({
       id: 'orderItemsStatus',
       initial: OrderItemState.draft,
       persistContext: true,
-      ctx: {
+      data: () => ({
         place: 'My warehouse',
-      },
+      }),
       transitions: [
         t(OrderItemState.draft, OrderItemEvent.create, OrderItemState.assembly),
         t(
@@ -94,10 +95,10 @@ class Order extends StateMachineEntity({
           event: OrderItemEvent.transfer,
           to: OrderItemState.warehouse,
           guard(context: IOrderItemContext, place: string) {
-            return context.place !== place;
+            return context.data.place !== place;
           },
           onExit(context: IOrderItemContext, place: string) {
-            context.place = place;
+            context.data.place = place;
           },
         },
         t(
@@ -130,7 +131,7 @@ Let's take a look at the `StateMachineEntity` mixin. It accepts an object with t
 - `initial` - the initial state of the state machine
 - `persistContext` - if set to `true`, the state machine context will be saved to the database. Default value is `false`
 - `saveAfterTransition` - if `true`, the state machine will be saved to the database after each transition. Default value is `true`
-- `ctx` - initial context of the state machine
+- `data` - initial data for the state machine context
 - `transitions` - an array of transitions
 - `subscribers` - an object with subscribers array for events
 
@@ -195,10 +196,10 @@ orderItemFSM.addTransition([
     OrderItemState.shipping,
     {
       guard(context: IOrderItemContext, place: string) {
-        return context.place !== place;
+        return context.data.place !== place;
       },
       onExit(context: IOrderItemContext, place: string) {
-        context.place = place;
+        context.data.place = place;
       },
     },
   ),
@@ -299,7 +300,6 @@ order.fsm.itemsStatus.on(function () {
   console.log(this.current);
 }.bind({ current: 'test' }));
 ```
-
 
 ### Error handling
 

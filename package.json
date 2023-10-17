@@ -27,7 +27,7 @@
     "test:watch": "vitest --watch",
     "test:cov": "vitest --coverage",
     "commit": "cz",
-    "docs:build": "typedoc src/index.ts --tsconfig tsconfig.build.json --plugin typedoc-plugin-mermaid",
+    "docs:build": "typedoc src/index.ts --tsconfig tsconfig.build.json",
     "release": "semantic-release",
     "clean": "rm -rf dist",
     "postversion": "cp -r package.json .."
@@ -42,7 +42,7 @@
     "@typescript-eslint/eslint-plugin": "^6.8.0",
     "@typescript-eslint/parser": "^6.8.0",
     "@vitest/coverage-v8": "^0.34.6",
-    "better-sqlite3": "^9.0.0",
+    "better-sqlite3": "^8.7.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
@@ -56,13 +56,15 @@
     "prettier": "^3.0.3",
     "semantic-release": "^22.0.5",
     "typedoc": "^0.25.2",
+    "typedoc-plugin-extras": "^3.0.0",
     "typedoc-plugin-mermaid": "^1.10.0",
+    "typedoc-plugin-replace-text": "^3.2.0",
     "typescript": "^5.2.2",
     "unplugin-swc": "^1.4.3",
     "vitest": "^0.34.6"
   },
   "peerDependencies": {
-    "typeorm": "~0.3.17"
+    "typeorm": "^0.3.17"
   },
   "commit": "cz",
   "config": {

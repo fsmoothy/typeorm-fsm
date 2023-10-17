@@ -1,7 +1,6 @@
 import { StateMachineParameters, StateMachine, IStateMachine } from 'fsmoothy';
-import { StateMachineError } from 'fsmoothy/fsm.error';
 import { AllowedNames, FsmContext } from 'fsmoothy/types';
-import { BaseEntity, Column, getMetadataArgsStorage, ObjectId } from 'typeorm';
+import { BaseEntity, Column, getMetadataArgsStorage } from 'typeorm';
 
 export interface IStateMachineEntityColumnParameters<
   State extends AllowedNames,
@@ -60,8 +59,6 @@ type BaseStateMachineEntity<
   Context extends FsmContext<object> = FsmContext<object>,
   Column extends string = string,
 > = BaseEntity & {
-  id: number | string | Date | ObjectId;
-} & {
   [key: string]: unknown;
 } & {
   fsm: {
@@ -92,21 +89,16 @@ function initializeStateMachine<
     data,
   } = parameters;
 
-  if (!Array.isArray(transitions) || transitions.length === 0) {
-    throw new StateMachineError('Transitions are not defined');
-  }
-
-  // @ts-expect-error - we're using variadic tuple
-  parameters.transitions = transitions.map((transition) => {
+  (parameters as any).transitions = transitions?.map((transition) => {
     return {
       ...transition,
       async onExit(context: Context, ...arguments_: Array<unknown>) {
-        entity[column] = transition.to as State;
+        entity[column] = transition.to;
 
-        await transition.onExit?.call?.(this, context, ...arguments_);
+        await transition.onExit?.call(this, context, ...arguments_);
 
         if (persistContext) {
-          entity[buildContextColumnName(column)] = JSON.stringify(context);
+          entity[buildContextColumnName(column)] = JSON.stringify(context.data);
         }
 
         if (saveAfterTransition) {
@@ -116,17 +108,17 @@ function initializeStateMachine<
     };
   });
 
-  let context = typeof data === 'string' ? JSON.parse(data) : data;
+  let _data = typeof data === 'string' ? JSON.parse(data) : data;
 
   if (
     persistContext &&
     Object.keys(entity[buildContextColumnName(column)] as object).length > 0
   ) {
-    context = entity[buildContextColumnName(column)];
+    _data = entity[buildContextColumnName(column)];
   }
 
-  if (typeof context !== 'function') {
-    context = () => context;
+  if (typeof _data !== 'function') {
+    _data = () => _data;
   }
 
   entity.fsm[column] = new StateMachine({
@@ -175,7 +167,7 @@ export const StateMachineEntity = function <
   const Parameters extends {
     [Column in Columns]: IStateMachineEntityColumnParameters<any, any, any>;
   },
-  Entity extends BaseEntity,
+  Entity extends BaseEntity = BaseEntity,
   const Columns extends keyof Parameters = keyof Parameters,
 >(parameters: Parameters, _BaseEntity?: { new (): Entity }) {
   const _Entity = _BaseEntity ?? BaseEntity;
@@ -242,10 +234,6 @@ export const StateMachineEntity = function <
             default: '{}',
             transformer: {
               from(value) {
-                if (typeof value === 'string') {
-                  return JSON.parse(value);
-                }
-
                 return value;
               },
               to(value) {
@@ -274,18 +262,17 @@ export const StateMachineEntity = function <
   }
 
   return _StateMachineEntity as unknown as {
-    new (): BaseEntity &
-      Entity & {
-        params: Parameters;
-        fsm: {
-          [Column in keyof Parameters]: IStateMachine<
-            ExtractState<Parameters, Column>,
-            ExtractEvent<Parameters, Column>,
-            ExtractContext<Parameters, Column>
-          >;
-        };
-      } & {
-        [Column in keyof Parameters]: ExtractState<Parameters, Column>;
+    new (): Entity & {
+      params: Parameters;
+      fsm: {
+        [Column in keyof Parameters]: IStateMachine<
+          ExtractState<Parameters, Column>,
+          ExtractEvent<Parameters, Column>,
+          ExtractContext<Parameters, Column>
+        >;
       };
+    } & {
+      [Column in keyof Parameters]: ExtractState<Parameters, Column>;
+    };
   };
 };
