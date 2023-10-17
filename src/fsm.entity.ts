@@ -1,27 +1,13 @@
-import {
-  StateMachineParameters,
-  StateMachine,
-  IStateMachine,
-  Transition,
-} from 'fsmoothy';
+import { StateMachineParameters, StateMachine, IStateMachine } from 'fsmoothy';
 import { StateMachineError } from 'fsmoothy/fsm.error';
-import { AllowedNames } from 'fsmoothy/types';
+import { AllowedNames, FsmContext } from 'fsmoothy/types';
 import { BaseEntity, Column, getMetadataArgsStorage, ObjectId } from 'typeorm';
 
 export interface IStateMachineEntityColumnParameters<
   State extends AllowedNames,
   Event extends AllowedNames,
-  Context extends object,
-> extends Omit<
-    StateMachineParameters<
-      State,
-      Event,
-      Context,
-      Transition<State, Event, any>,
-      [Transition<State, Event, any>, ...Array<Transition<State, Event, any>>]
-    >,
-    'states'
-  > {
+  Context extends FsmContext<object> = FsmContext<object>,
+> extends Omit<StateMachineParameters<State, Event, Context>, 'states'> {
   persistContext?: boolean;
   /**
    * @default true
@@ -71,8 +57,8 @@ type ExtractContext<
 type BaseStateMachineEntity<
   State extends AllowedNames,
   Event extends AllowedNames,
-  Context extends object,
-  Column extends string,
+  Context extends FsmContext<object> = FsmContext<object>,
+  Column extends string = string,
 > = BaseEntity & {
   id: number | string | Date | ObjectId;
 } & {
@@ -92,8 +78,8 @@ const buildContextColumnName = (column: string) =>
 function initializeStateMachine<
   const State extends AllowedNames,
   const Event extends AllowedNames,
-  const Column extends string,
-  const Context extends object,
+  Context extends FsmContext<object> = FsmContext<object>,
+  const Column extends string = string,
 >(
   entity: BaseStateMachineEntity<State, Event, Context, Column>,
   column: Column,
@@ -103,7 +89,7 @@ function initializeStateMachine<
     persistContext,
     saveAfterTransition = true,
     transitions,
-    ctx,
+    data,
   } = parameters;
 
   if (!Array.isArray(transitions) || transitions.length === 0) {
@@ -114,7 +100,7 @@ function initializeStateMachine<
   parameters.transitions = transitions.map((transition) => {
     return {
       ...transition,
-      async onExit(context: object, ...arguments_: Array<unknown>) {
+      async onExit(context: Context, ...arguments_: Array<unknown>) {
         entity[column] = transition.to as State;
 
         await transition.onExit?.call?.(this, context, ...arguments_);
@@ -130,7 +116,7 @@ function initializeStateMachine<
     };
   });
 
-  let context = typeof ctx === 'string' ? JSON.parse(ctx) : ctx;
+  let context = typeof data === 'string' ? JSON.parse(data) : data;
 
   if (
     persistContext &&
@@ -146,7 +132,7 @@ function initializeStateMachine<
   entity.fsm[column] = new StateMachine({
     ...parameters,
     initial: entity[column] as State,
-    ctx: context,
+    data,
   });
 
   entity.fsm[column].bind(entity);
@@ -207,20 +193,19 @@ export const StateMachineEntity = function <
 
   const metadataStorage = getMetadataArgsStorage();
 
-  for (const [column, parameter] of Object.entries<
-    IStateMachineEntityColumnParameters<AllowedNames, AllowedNames, object>
-  >(
-    parameters as unknown as Record<
-      Columns,
-      IStateMachineEntityColumnParameters<AllowedNames, AllowedNames, object>
-    >,
-  )) {
-    const { persistContext, initial } = parameter;
+  for (const [column, parameter] of Object.entries(parameters)) {
+    const _parameter = parameter as IStateMachineEntityColumnParameters<
+      AllowedNames,
+      AllowedNames,
+      FsmContext<object>
+    >;
+    const { persistContext, initial } = _parameter;
+
     const afterLoadMethodName = buildAfterLoadMethodName(column);
 
     Object.defineProperty(_StateMachineEntity.prototype, afterLoadMethodName, {
       value: function () {
-        initializeStateMachine(this, column, parameter);
+        initializeStateMachine(this, column, _parameter);
       },
     });
 

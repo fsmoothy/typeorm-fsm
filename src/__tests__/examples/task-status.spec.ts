@@ -1,13 +1,14 @@
+import { FsmContext } from 'fsmoothy/types';
 import {
   Entity,
   PrimaryGeneratedColumn,
   BaseEntity,
   Column,
   DataSource,
-  EntityManager,
   OneToMany,
   JoinColumn,
   ManyToOne,
+  QueryRunner,
 } from 'typeorm';
 import { describe, it, expect, afterAll, afterEach, beforeAll } from 'vitest';
 
@@ -38,40 +39,54 @@ interface ITag {
   name: string;
 }
 
-const activate = t(TaskState.Inactive, TaskEvent.Activate, TaskState.Active, {
-  async onEnter(this: ITask, _context, tx: EntityManager, tags: Array<ITag>) {
-    const _tags = await Promise.all(
-      tags.map(async (tag) => {
-        const newTag = tx.create(Tag, tag);
-        return await tx.save(Tag, newTag);
-      }),
-    );
+interface ITaskContext extends FsmContext<never> {
+  qr: QueryRunner;
+}
 
-    this.tags = _tags;
-  },
-  async onExit(this: ITask, _context, tx: EntityManager) {
-    await tx.save(Task, this);
-  },
-});
+const activate = t<TaskState, TaskEvent, ITaskContext>(
+  TaskState.Inactive,
+  TaskEvent.Activate,
+  TaskState.Active,
+  {
+    async onEnter(this: ITask, context, tags: Array<ITag>) {
+      const _tags = await Promise.all(
+        tags.map(async (tag) => {
+          const newTag = context.qr.manager.create(Tag, tag);
+          return await context.qr.manager.save(Tag, newTag);
+        }),
+      );
 
-const complete = t(TaskState.Active, TaskEvent.Complete, TaskState.Completed, {
-  onEnter(this: ITask) {
-    this.completedAt = fakeDate;
+      this.tags = _tags;
+    },
+    async onExit(this: ITask, context) {
+      await context.qr.manager.save(Task, this);
+    },
   },
-  async onExit(this: ITask, _context, tx: EntityManager) {
-    for (const tag of this.tags) {
-      tag.name = tag.name.toUpperCase() + '-completed';
-      await tx.save(Tag, tag);
-    }
+);
 
-    await tx.save(Task, this);
+const complete = t<TaskState, TaskEvent, ITaskContext>(
+  TaskState.Active,
+  TaskEvent.Complete,
+  TaskState.Completed,
+  {
+    onEnter(this: ITask) {
+      this.completedAt = fakeDate;
+    },
+    async onExit(this: ITask, context) {
+      for (const tag of this.tags) {
+        tag.name = tag.name.toUpperCase() + '-completed';
+        await context.qr.manager.save(Tag, tag);
+      }
+
+      await context.qr.manager.save(Task, this);
+    },
   },
-});
+);
 
 @Entity()
 class Task
   extends StateMachineEntity({
-    status: state<TaskState, TaskEvent>({
+    status: state<TaskState, TaskEvent, ITaskContext>({
       initial: TaskState.Inactive,
       saveAfterTransition: false,
       transitions: [activate, complete],
@@ -140,22 +155,23 @@ describe('Task Status', () => {
     task.title = 'My Task';
     await task.save();
 
-    await dataSource.manager.transaction(async (tx) => {
-      await task.fsm.status.activate(tx, [
-        {
-          name: 'Tag One',
-        },
-        {
-          name: 'Tag Two',
-        },
-      ]);
-    });
+    const queryRunner = dataSource.createQueryRunner();
+    task.fsm.status.inject('qr', queryRunner);
+
+    await queryRunner.startTransaction();
+    await task.fsm.status.activate([
+      {
+        name: 'Tag One',
+      },
+      {
+        name: 'Tag Two',
+      },
+    ]);
 
     expect(task.status).toBe(TaskState.Active);
 
-    await dataSource.manager.transaction(async (tx) => {
-      await task.fsm.status.complete(tx);
-    });
+    await task.fsm.status.complete();
+    await queryRunner.commitTransaction();
 
     const taskFromDatabase = await dataSource.manager.findOneByOrFail(Task, {
       id: task.id,

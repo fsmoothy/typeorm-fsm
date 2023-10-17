@@ -72,7 +72,7 @@ class Order extends StateMachineEntity(
       id: 'orderItemsStatus',
       initial: OrderItemState.draft,
       persistContext: true,
-      ctx() {
+      data() {
         return {
           place: 'My warehouse',
         };
@@ -88,10 +88,10 @@ class Order extends StateMachineEntity(
           from: OrderItemState.warehouse,
           event: OrderItemEvent.transfer,
           to: OrderItemState.warehouse,
-          guard(context: IOrderItemContext, place: string) {
+          guard(context, place: string) {
             return context.place !== place;
           },
-          onExit(context: IOrderItemContext, place: string) {
+          onExit(context, place: string) {
             context.place = place;
           },
         },
@@ -191,7 +191,7 @@ describe('StateMachineEntity', () => {
 
     expect(handlerContext).toBeInstanceOf(Order);
     expect(handler).toBeCalledTimes(1);
-    expect(handler).toBeCalledWith({ place: 'My warehouse' });
+    expect(handler).toBeCalledWith({ data: { place: 'My warehouse' } });
   });
 
   it('should throw error when transition is not possible', async () => {

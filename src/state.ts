@@ -1,11 +1,11 @@
-import { AllowedNames } from 'fsmoothy/types';
+import { AllowedNames, FsmContext } from 'fsmoothy/types';
 
 import { IStateMachineEntityColumnParameters } from './fsm.entity';
 
 export const state = <
   const State extends AllowedNames,
   const Event extends AllowedNames,
-  const Context extends object = object,
+  Context extends FsmContext<object> = FsmContext<object>,
 >(
   parameters: IStateMachineEntityColumnParameters<State, Event, Context>,
 ) => parameters;
