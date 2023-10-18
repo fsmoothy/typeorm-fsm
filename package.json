@@ -73,6 +73,6 @@
     }
   },
   "dependencies": {
-    "fsmoothy": "1.8.0"
+    "fsmoothy": "1.8.1"
   }
 }

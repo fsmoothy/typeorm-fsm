@@ -333,6 +333,6 @@ Take a look at the [CHANGELOG](CHANGELOG.md) for details about recent changes to
 
 ## Thanks
 
-This project was inspired by [aasm](https://github.com/aasm/aasm) and [typeorm-fsm](https://github.com/eram/typescript-fsm).
+This project was inspired by [aasm](https://github.com/aasm/aasm) and [typescript-fsm](https://github.com/eram/typescript-fsm).
 
 And thank you for reading this far. I hope you find this library useful.
