@@ -49,14 +49,12 @@ const activate = t<TaskState, TaskEvent, ITaskContext>(
   TaskState.Active,
   {
     async onEnter(this: ITask, context, tags: Array<ITag>) {
-      const _tags = await Promise.all(
+      this.tags = await Promise.all(
         tags.map(async (tag) => {
           const newTag = context.qr.manager.create(Tag, tag);
           return await context.qr.manager.save(Tag, newTag);
         }),
       );
-
-      this.tags = _tags;
     },
     async onExit(this: ITask, context) {
       await context.qr.manager.save(Task, this);
