@@ -1,3 +1,17 @@
+# [1.8.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.7.0...v1.8.0) (2023-12-27)
+
+
+### Bug Fixes
+
+* conflict entity on bulk update ([8a3601c](https://github.com/fsmoothy/typeorm-fsm/commit/8a3601c35c1a48ba9fd741abe4693ba9084450fb))
+* update package lock ([3077378](https://github.com/fsmoothy/typeorm-fsm/commit/30773789e584b03d0c6c81966d6aa73b702e30ff))
+
+
+### Features
+
+* update fsmoothy version ([78262df](https://github.com/fsmoothy/typeorm-fsm/commit/78262df367e175bf543d1d148a561d6c09d9d6db))
+* update packages ([6b23fee](https://github.com/fsmoothy/typeorm-fsm/commit/6b23fee86d91bc2f5353b14ccdc331a801657f6f))
+
 # [1.7.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.6.1...v1.7.0) (2023-10-17)
 
 
