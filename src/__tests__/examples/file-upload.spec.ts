@@ -96,15 +96,20 @@ describe('File upload', () => {
 
     await file.fsm.status.start();
     expect(file.fsm.status.isUploading()).toBe(true);
-    expect(await findFileById(file.id)).toContain({
-      status: FileState.uploading,
-    });
+
+    const savedFile = await findFileById(file.id);
+
+    expect(savedFile).toEqual(
+      expect.objectContaining({ status: FileState.uploading }),
+    );
 
     await file.fsm.status.finish('https://example.com');
     expect(file.fsm.status.isCompleted()).toBe(true);
-    expect(await findFileById(file.id)).toContain({
-      status: FileState.completed,
-      url: 'https://example.com',
-    });
+    expect(await findFileById(file.id)).toEqual(
+      expect.objectContaining({
+        status: FileState.completed,
+        url: 'https://example.com',
+      }),
+    );
   });
 });

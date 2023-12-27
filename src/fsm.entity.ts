@@ -89,7 +89,8 @@ function initializeStateMachine<
     data,
   } = parameters;
 
-  (parameters as any).transitions = transitions?.map((transition) => {
+  // @ts-expect-error - readonly property
+  parameters.transitions = transitions?.map((transition) => {
     return {
       ...transition,
       async onExit(context: Context, ...arguments_: Array<unknown>) {
