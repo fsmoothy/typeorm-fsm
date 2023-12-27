@@ -88,9 +88,6 @@ function initializeStateMachine<
     transitions,
     data,
   } = parameters;
-  // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
-  const _this = this;
-
   // @ts-expect-error - readonly property
   parameters.transitions = transitions?.map(function (transition) {
     return {
@@ -119,22 +116,22 @@ function initializeStateMachine<
 
   if (
     persistContext &&
-    Object.keys(_this[buildContextColumnName(column)] as object).length > 0
+    Object.keys(this[buildContextColumnName(column)] as object).length > 0
   ) {
-    _data = _this[buildContextColumnName(column)];
+    _data = this[buildContextColumnName(column)];
   }
 
   if (typeof _data !== 'function') {
     _data = () => _data;
   }
 
-  _this.fsm[column] = new StateMachine({
+  this.fsm[column] = new StateMachine({
     ...parameters,
-    initial: _this[column] as State,
+    initial: this[column] as State,
     data,
   });
 
-  _this.fsm[column].bind(_this);
+  this.fsm[column].bind(this);
 }
 
 /**
