@@ -112,4 +112,35 @@ describe('File upload', () => {
       }),
     );
   });
+
+  it('should bulk update to different state', async () => {
+    const file1 = await dataSource.manager
+      .create(File, {
+        status: FileState.pending,
+      })
+      .save();
+    const file2 = await dataSource.manager
+      .create(File, {
+        status: FileState.uploading,
+      })
+      .save();
+
+    const filesToUpdate = [
+      {
+        file: file1,
+        event: FileEvent.start,
+      },
+      {
+        file: file2,
+        event: FileEvent.fail,
+      },
+    ];
+
+    await Promise.all(
+      filesToUpdate.map(({ file, event }) => file.fsm.status.transition(event)),
+    );
+
+    expect(file1.fsm.status.isUploading()).toBe(true);
+    expect(file2.fsm.status.isFailed()).toBe(true);
+  });
 });

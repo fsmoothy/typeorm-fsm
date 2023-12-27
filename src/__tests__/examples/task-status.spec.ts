@@ -186,4 +186,60 @@ describe('Task Status', () => {
       ]),
     );
   });
+
+  it('should bulk update to different state', async () => {
+    const task1 = await dataSource.manager
+      .create(Task, {
+        title: 'My Task 1',
+      })
+      .save();
+    const task2 = await dataSource.manager
+      .create(Task, {
+        title: 'My Task 2',
+        status: TaskState.Active,
+        tags: [],
+      })
+      .save();
+
+    const tasksToUpdate = [
+      {
+        task: task1,
+        event: TaskEvent.Activate,
+      },
+      { task: task2, event: TaskEvent.Complete },
+    ];
+
+    const queryRunner = dataSource.createQueryRunner();
+    for (const { task } of tasksToUpdate) {
+      task.fsm.status.inject('qr', queryRunner);
+    }
+
+    await queryRunner.startTransaction();
+    await Promise.all(
+      tasksToUpdate.map(({ task, event }) =>
+        task.fsm.status.transition(event, [
+          {
+            name: 'Tag One',
+          },
+          {
+            name: 'Tag Two',
+          },
+        ]),
+      ),
+    );
+
+    await queryRunner.commitTransaction();
+
+    const updatedTask1 = await dataSource.manager.findOneByOrFail(Task, {
+      id: task1.id,
+    });
+
+    expect(updatedTask1.status).toBe(TaskState.Active);
+
+    const updatedTask2 = await dataSource.manager.findOneByOrFail(Task, {
+      id: task2.id,
+    });
+
+    expect(updatedTask2.status).toBe(TaskState.Completed);
+  });
 });

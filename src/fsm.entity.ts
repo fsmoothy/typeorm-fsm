@@ -78,7 +78,7 @@ function initializeStateMachine<
   Context extends FsmContext<object> = FsmContext<object>,
   const Column extends string = string,
 >(
-  entity: BaseStateMachineEntity<State, Event, Context, Column>,
+  this: BaseStateMachineEntity<State, Event, Context, Column>,
   column: Column,
   parameters: IStateMachineEntityColumnParameters<State, Event, Context>,
 ) {
@@ -88,22 +88,28 @@ function initializeStateMachine<
     transitions,
     data,
   } = parameters;
+  // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias
+  const _this = this;
 
   // @ts-expect-error - readonly property
-  parameters.transitions = transitions?.map((transition) => {
+  parameters.transitions = transitions?.map(function (transition) {
     return {
       ...transition,
-      async onExit(context: Context, ...arguments_: Array<unknown>) {
-        entity[column] = transition.to;
+      async onExit(
+        this: BaseStateMachineEntity<State, Event, Context, Column>,
+        context: Context,
+        ...arguments_: Array<unknown>
+      ) {
+        this[column] = transition.to;
 
         await transition.onExit?.call(this, context, ...arguments_);
 
         if (persistContext) {
-          entity[buildContextColumnName(column)] = JSON.stringify(context.data);
+          this[buildContextColumnName(column)] = JSON.stringify(context.data);
         }
 
         if (saveAfterTransition) {
-          await entity.save();
+          await this.save();
         }
       },
     };
@@ -113,22 +119,22 @@ function initializeStateMachine<
 
   if (
     persistContext &&
-    Object.keys(entity[buildContextColumnName(column)] as object).length > 0
+    Object.keys(_this[buildContextColumnName(column)] as object).length > 0
   ) {
-    _data = entity[buildContextColumnName(column)];
+    _data = _this[buildContextColumnName(column)];
   }
 
   if (typeof _data !== 'function') {
     _data = () => _data;
   }
 
-  entity.fsm[column] = new StateMachine({
+  _this.fsm[column] = new StateMachine({
     ...parameters,
-    initial: entity[column] as State,
+    initial: _this[column] as State,
     data,
   });
 
-  entity.fsm[column].bind(entity);
+  _this.fsm[column].bind(_this);
 }
 
 /**
@@ -198,7 +204,7 @@ export const StateMachineEntity = function <
 
     Object.defineProperty(_StateMachineEntity.prototype, afterLoadMethodName, {
       value: function () {
-        initializeStateMachine(this, column, _parameter);
+        initializeStateMachine.call(this, column, _parameter);
       },
     });
 
