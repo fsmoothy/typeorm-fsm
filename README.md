@@ -2,6 +2,9 @@
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![Maintainability](https://api.codeclimate.com/v1/badges/a24c3d831b2fe310c268/maintainability)](https://codeclimate.com/github/fsmoothy/typeorm-fsm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/a24c3d831b2fe310c268/test_coverage)](https://codeclimate.com/github/fsmoothy/typeorm-fsm/test_coverage)
 
+> Package migrated to monorepo and published with new name `@fsmoothy/typeorm`. This repo in maintenance mode.
+> Only critical bugs will be fixed.
+
 `typeorm-fsm` is a strongly typed state machine designed for TypeORM entities. It allows you to define and manage state transitions in a declarative manner. The library is using [fsmoothy](https://github.com/fsmoothy/fsmoothy) package to provide the best DX.
 
 ## Index
