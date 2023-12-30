@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/fsmoothy/typeorm-fsm/compare/v1.8.0...v1.8.1) (2023-12-30)
+
+
+### Bug Fixes
+
+* migrate repo to maintenance mode ([f13c044](https://github.com/fsmoothy/typeorm-fsm/commit/f13c044a921b2560235c7fe05e320b88abe2d399))
+
 # [1.8.0](https://github.com/fsmoothy/typeorm-fsm/compare/v1.7.0...v1.8.0) (2023-12-27)
 
 
